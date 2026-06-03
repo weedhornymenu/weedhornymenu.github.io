@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weedhorny Menu Generator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap" rel="stylesheet">
+    <!-- Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --card-width: 350px;
+            --card-height: 360px;
+            --font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Card Styling */
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background: white;
+            border: 1px solid #000;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: var(--font-family);
+        }
+
+        .card-header {
+            background: black;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .card-header img {
+            height: 30px;
+            width: 30px;
+        }
+
+        .card-header span {
+            font-weight: bold;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+
+        .card-name {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 5px 0px;
+            border-bottom: 1px solid #000;
+            text-transform: uppercase;
+        }
+
+        .card-info {
+            text-align: center;
+            padding: 5px;
+            border-bottom: 1px solid #000;
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+
+        .card-effects {
+            padding: 5px;
+            border-bottom: 1px solid #000;
+            flex-grow: 0;
+        }
+
+        .section-label {
+            font-weight: bolder;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            display: block;
+        }
+
+        .effects-text {
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 3px 0;
+        }
+
+        .card-price {
+            padding: 5px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .price-item {
+            display: flex;
+            font-family: "Google Sans Code", monospace;
+            width: 68%;
+            justify-content: space-between;
+            font-size: 1.3rem;
+            font-weight: bolder;
+        }
+
+        .price-label {
+            color: red;
+            width: 45%;
+        }
+
+        .price-divider {
+            color: red;
+            width: 10%;
+        }
+
+        .price-value {
+            color: red;
+            text-align: right;
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .price-currency {
+            color: red;
+        }
+
+        /* PDF Generation Container (Hidden) */
+        #pdf-container {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 210mm; /* A4 Width */
+            background: white;
+        }
+
+        .pdf-page {
+            width: 210mm;
+            height: 297mm;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            padding: 10mm;
+            box-sizing: border-box;
+            column-gap: 26mm;
+            row-gap: 5mm;
+            page-break-after: always;
+        }
+
+        .pdf-page .card {
+            width: 100%;
+            height: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <input type="file" id="excel-file" accept=".xlsx, .xls">
+        <button id="download-btn" disabled>Download PDF</button>
+    </div>
+
+    <div id="preview"></div>
+
+    <div id="pdf-container"></div>
+
+    <script>
+        const excelInput = document.getElementById('excel-file');
+        const preview = document.getElementById('preview');
+        const downloadBtn = document.getElementById('download-btn');
+        const pdfContainer = document.getElementById('pdf-container');
+        const emptyCardData = { NAME: 'PLACEHOLDER', THC: 'PLACEHOLDER', TYPE: 'PLACEHOLDER', EFFECTS: 'PLACEHOLDER', '1G': '0', '10G': '0', '30G': '0', '50G': '0', '100G': '0' };
+
+        let productsData = [];
+
+        excelInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Convert sheet to JSON
+                // We expect columns: NAME, THC, TYPE, EFFECTS, 1G, 10G, 30G, 50G, 100G
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                productsData = jsonData;
+
+                renderPreview(productsData);
+                downloadBtn.disabled = false;
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function renderPreview(data) {
+            preview.innerHTML = '';
+            data.forEach((item, index) => {
+                if(index == 0) return; // Skip header row if present
+                const card = createCardElement(item);
+                preview.appendChild(card);
+            });
+            console.log('items', data);
+        }
+
+        function createCardElement(item) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <img src="weed_horny_logo.png" alt="Logo">
+                    <span>WEEDHORNY.COM</span>
+                </div>
+                <div class="card-name">${item.NAME || ''}</div>
+                <div class="card-info">
+                    THC ${item.THC || '-%'} [ GACP ]<br>
+                    ${item.TYPE || ''}
+                </div>
+                <div class="card-effects">
+                    <span class="section-label">Effects:</span>
+                    <div class="effects-text">${item.EFFECTS || ''}</div>
+                </div>
+                <div class="card-price">
+                    <span class="section-label">Price:</span>
+                    <div class="price-list">
+                        ${renderPriceRow('1G', item['1G'])}
+                        ${renderPriceRow('10G', item['10G'])}
+                        ${renderPriceRow('30G', item['30G'])}
+                        ${renderPriceRow('50G', item['50G'])}
+                        ${renderPriceRow('100G', item['100G'])}
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderPriceRow(label, value) {
+            if (value === undefined || value === null || value === '') return '';
+            return `
+                <div class="price-item">
+                    <span class="price-label">${label}</span>
+                    <span class="price-divider">-</span>
+                    <span class="price-value">${value}</span>
+                    <span class="price-currency">B</span>
+                </div>
+            `;
+        }
+
+        downloadBtn.addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            downloadBtn.textContent = 'Generating...';
+            downloadBtn.disabled = true;
+
+            // Group data into chunks of 4 for A4 pages
+            const chunks = [];
+            for (let i = 0; i < productsData.length; i += 6) {
+                chunks.push(productsData.slice(i, i + 6));
+            }
+
+            if(chunks.length === 0) {
+                alert('No data to generate PDF.');
+                downloadBtn.textContent = 'Download PDF';
+                downloadBtn.disabled = false;
+                return;
+            }
+
+            if(chunks[chunks.length - 1].length < 6) {
+                // Pad the last chunk with empty items if less than 6
+                while(chunks[chunks.length - 1].length < 6) {
+                    chunks[chunks.length - 1].push(emptyCardData);
+                }
+            }
+
+            for (let i = 0; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                pdfContainer.innerHTML = '';
+                const page = document.createElement('div');
+                page.className = 'pdf-page';
+                
+                chunk.forEach(item => {
+                    page.appendChild(createCardElement(item));
+                });
+                
+                pdfContainer.appendChild(page);
+
+                const canvas = await html2canvas(page, {
+                    scale: 2, // Higher resolution
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+            }
+
+            pdf.save('Weedhorny_Menu.pdf');
+            downloadBtn.textContent = 'Download PDF';
+            downloadBtn.disabled = false;
+            pdfContainer.innerHTML = '';
+        });
+    </script>
+</body>
+</html>
