@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weedhorny Menu Generator</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
     <!-- Libraries -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,8 +18,8 @@
     <style>
         :root {
             --card-width: 350px;
-            --card-height: 360px;
-            --font-family: 'Courier New', Courier, monospace;
+            --card-height: 380px;
+            --font-family: "Roboto Mono", Courier, monospace;
         }
 
         body {
@@ -99,26 +101,30 @@
             border-bottom: 1px solid #000;
             font-size: 0.7rem;
             line-height: 1.4;
+            font-weight: bolder;
         }
 
         .card-effects {
             padding: 5px;
             border-bottom: 1px solid #000;
             flex-grow: 0;
+            font-weight: bolder;
         }
 
         .section-label {
             font-weight: bolder;
-            font-size: 0.7rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
             margin-bottom: 3px;
             display: block;
+            font-weight: bolder;
         }
 
         .effects-text {
             text-align: center;
             font-size: 0.7rem;
             padding: 3px 0;
+            font-weight: bolder;
         }
 
         .card-price {
@@ -138,7 +144,6 @@
 
         .price-item {
             display: flex;
-            font-family: "Google Sans Code", monospace;
             width: 68%;
             justify-content: space-between;
             font-size: 1.3rem;
@@ -184,7 +189,7 @@
             padding: 10mm;
             box-sizing: border-box;
             column-gap: 26mm;
-            row-gap: 5mm;
+            row-gap: 75mm;
             page-break-after: always;
         }
 
@@ -313,8 +318,8 @@
 
             // Group data into chunks of 4 for A4 pages
             const chunks = [];
-            for (let i = 0; i < productsData.length; i += 6) {
-                chunks.push(productsData.slice(i, i + 6));
+            for (let i = 0; i < productsData.length; i += 4) {
+                chunks.push(productsData.slice(i, i + 4));
             }
 
             if(chunks.length === 0) {
@@ -324,9 +329,9 @@
                 return;
             }
 
-            if(chunks[chunks.length - 1].length < 6) {
-                // Pad the last chunk with empty items if less than 6
-                while(chunks[chunks.length - 1].length < 6) {
+            if(chunks[chunks.length - 1].length < 4) {
+                // Pad the last chunk with empty items if less than 4
+                while(chunks[chunks.length - 1].length < 4) {
                     chunks[chunks.length - 1].push(emptyCardData);
                 }
             }
