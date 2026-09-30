@@ -7,8 +7,10 @@ const props = defineProps({
 })
 
 const TYPE_META = {
-  sativa: { pill: 'SATIVA DOMINANT', cls: 'sativa' },
-  indica: { pill: 'INDICA DOMINANT', cls: 'indica' },
+  sativa: { pill: 'SATIVA', cls: 'sativa' },
+  indica: { pill: 'INDICA', cls: 'indica' },
+  sativaD: { pill: 'SATIVA DOMINANT', cls: 'sativaD' },
+  indicaD: { pill: 'INDICA DOMINANT', cls: 'indicaD' },
   hybrid: { pill: 'HYBRID', cls: 'hybrid' }
 }
 
@@ -235,6 +237,8 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
 }
 .pill.sativa { background: #d84747; }
 .pill.indica { background: #475fd8; }
+.pill.sativaD { background: #d84747; }
+.pill.indicaD { background: #475fd8; }
 .pill.hybrid { background: #44b948; }
 
 .effects-zone { flex: none; padding: 16px 20px 0px 20px; }

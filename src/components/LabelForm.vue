@@ -23,8 +23,10 @@ defineEmits(['submit'])
       <div class="field">
         <label for="f-type">Type</label>
         <select id="f-type" v-model="form.type">
-          <option value="sativa">Sativa Dominant</option>
-          <option value="indica">Indica Dominant</option>
+          <option value="sativa">Sativa</option>
+          <option value="indica">Indica</option>
+          <option value="sativaD">Sativa Dominant</option>
+          <option value="indicaD">Indica Dominant</option>
           <option value="hybrid">Hybrid</option>
         </select>
       </div>
