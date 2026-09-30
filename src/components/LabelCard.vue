@@ -132,6 +132,7 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
   gap: 16px;
   height: 90px;
   flex: none;
+  padding: 0px 20px;
 }
 .logo {
   width: 70px;
@@ -146,7 +147,7 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
   font-weight: 900;
   font-size: 40px;
   line-height: 1.15;
-  letter-spacing: 6px;
+  letter-spacing: 2px;
   color: #005116;
   white-space: nowrap;
 }
@@ -170,6 +171,7 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
   display: flex;
   align-items: center;
   flex: none;
+  padding: 0px 20px;
 }
 .product-name {
   margin: 0;
@@ -191,9 +193,8 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
   display: flex;
   align-items: stretch;
   justify-content: center;
-  padding-top: 10px;
-  padding-bottom: 10px;
   flex: none;
+  padding: 10px 20px;
 }
 .tag {
   font-family: 'Montserrat', sans-serif;
@@ -236,7 +237,7 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
 .pill.indica { background: #475fd8; }
 .pill.hybrid { background: #44b948; }
 
-.effects-zone { padding-top: 16px; flex: none; }
+.effects-zone { flex: none; padding: 16px 20px 0px 20px; }
 .effects-zone .tag { margin-bottom: 12px; }
 .effects-list {
   display: flex;
