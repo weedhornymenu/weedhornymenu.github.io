@@ -249,7 +249,7 @@ watch([() => props.label.name, sizeClass], () => nextTick(fitName))
   flex-wrap: nowrap;
   overflow: hidden;
   font-weight: 600;
-  font-size: 26px;
+  font-size: 22px;
   color: #005116;
 }
 .bullet { margin: 0 12px; }
