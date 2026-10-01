@@ -1,9 +1,27 @@
 <script setup>
-defineProps({
+import { watch } from 'vue'
+
+const props = defineProps({
   form: { type: Object, required: true }
 })
 
 defineEmits(['submit'])
+
+const PRICE_PRESETS = [
+  { key: 'p200', label: '1G – 200฿', prices: { g1: 200, g10: 1000, g30: 3000, g50: 4000, g100: 7000 } },
+  { key: 'p250', label: '1G – 250฿', prices: { g1: 250, g10: 1200, g30: 3500, g50: 4500, g100: 7500 } },
+  { key: 'p300', label: '1G – 300฿', prices: { g1: 300, g10: 1400, g30: 4000, g50: 5500, g100: 9000 } },
+  { key: 'p350', label: '1G – 350฿', prices: { g1: 350, g10: 1700, g30: 4500, g50: 6500, g100: 11000 } },
+  { key: 'p400', label: '1G – 400฿', prices: { g1: 400, g10: 1900, g30: 5000, g50: 6500, g100: 11000 } },
+  { key: 'p450', label: '1G – 450฿', prices: { g1: 450, g10: 2200, g30: 5500, g50: 7000, g100: 12000 } },
+  { key: 'p500', label: '1G – 500฿', prices: { g1: 500, g10: 2300, g30: 6000, g50: 7500, g100: 12000 } },
+  { key: 'p600', label: '1G – 600฿', prices: { g1: 600, g10: 2800, g30: 6500, g50: 8000, g100: 12000 } }
+]
+
+watch(() => props.form.pricePreset, (key) => {
+  const preset = PRICE_PRESETS.find((p) => p.key === key)
+  if (preset) Object.assign(props.form.prices, preset.prices)
+})
 </script>
 
 <template>
@@ -49,6 +67,13 @@ defineEmits(['submit'])
 
     <fieldset class="prices">
       <legend>Prices (฿)</legend>
+      <div class="field preset-field">
+        <label for="f-preset">Price category (auto-fill)</label>
+        <select id="f-preset" v-model="form.pricePreset">
+          <option value="">Manual prices</option>
+          <option v-for="p in PRICE_PRESETS" :key="p.key" :value="p.key">{{ p.label }}</option>
+        </select>
+      </div>
       <div class="price-grid">
         <div class="field">
           <label for="p-g1">1 G</label>
@@ -124,6 +149,7 @@ defineEmits(['submit'])
   font-weight: 600;
   color: #40544a;
 }
+.preset-field { margin-bottom: 10px; }
 .price-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -12,6 +12,7 @@ function blankDraft() {
     thc: '',
     type: 'sativa',
     effects: '',
+    pricePreset: '',
     prices: { g1: '', g10: '', g30: '', g50: '', g100: '' }
   }
 }
