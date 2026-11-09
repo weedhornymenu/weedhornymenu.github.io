@@ -6,8 +6,10 @@ defineProps({
 defineEmits(['remove'])
 
 const TYPE_LABEL = {
-  sativa: 'Sativa Dominant',
-  indica: 'Indica Dominant',
+  sativa: 'Sativa',
+  indica: 'Indica',
+  sativaD: 'Sativa Dominant',
+  indicaD: 'Indica Dominant',
   hybrid: 'Hybrid'
 }
 
@@ -100,6 +102,8 @@ function fmt(v) {
 }
 .badge.sativa { background: #d84747; }
 .badge.indica { background: #475fd8; }
+.badge.sativaD { background: #d84747; }
+.badge.indicaD { background: #475fd8; }
 .badge.hybrid { background: #44b948; }
 .remove {
   border: none;

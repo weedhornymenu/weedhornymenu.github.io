@@ -4,6 +4,7 @@ import LabelCard from './components/LabelCard.vue'
 import LabelForm from './components/LabelForm.vue'
 import LabelsTable from './components/LabelsTable.vue'
 import { exportLabelsPdf } from './lib/exportPdf.js'
+import { parseMenuWorkbook } from './lib/importExcel.js'
 
 function blankDraft() {
   return {
@@ -76,6 +77,23 @@ async function onExport() {
     exporting.value = false
   }
 }
+
+const importInput = ref(null)
+function onImportClick() {
+  importInput.value?.click()
+}
+async function onImportFile(e) {
+  const file = e.target.files?.[0]
+  e.target.value = ''
+  if (!file) return
+  try {
+    const imported = parseMenuWorkbook(await file.arrayBuffer())
+    if (!imported.length) throw new Error('No products found in the file.')
+    labels.value.push(...imported.map((l) => ({ id: ++seq, ...l })))
+  } catch (err) {
+    window.alert('Import failed: ' + (err?.message || err))
+  }
+}
 </script>
 
 <template>
@@ -105,6 +123,8 @@ async function onExport() {
       </div>
       <LabelsTable :labels="labels" @remove="removeLabel" />
       <div class="list-actions">
+        <input ref="importInput" type="file" accept=".xlsx,.xls" hidden @change="onImportFile" />
+        <button class="btn secondary" type="button" @click="onImportClick">Import Excel</button>
         <button class="btn primary" type="button" :disabled="!labels.length || exporting" @click="onExport">
           {{ exporting ? 'Exporting…' : 'Export PDF (A4 · 6 labels per page)' }}
         </button>
@@ -179,6 +199,7 @@ async function onExport() {
   margin-top: 18px;
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
 }
 .btn {
   border: none;
@@ -191,6 +212,8 @@ async function onExport() {
 }
 .btn.primary { background: #005116; color: #ffffff; }
 .btn.primary:hover { background: #00651c; }
+.btn.secondary { background: #eef4ef; color: #005116; border: 1px solid #c9d6cd; }
+.btn.secondary:hover { background: #e2ece4; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .export-stage {
   position: fixed;

@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GACP Farm Manager</title>
+<style>
+  :root{
+    --bg:#f5f7f4; --card:#ffffff; --ink:#18211b; --muted:#5f6b62; --line:#dfe5de;
+    --accent:#166534; --accent-soft:#e8f2ea; --amber:#92400e; --amber-soft:#fdf2e2;
+    --red:#b91c1c; --red-soft:#fdeaea; --grey:#4b5563; --grey-soft:#eef0ee;
+    --blue:#0e7490; --blue-soft:#e6f4f8; --radius:14px;
+    --shadow:0 1px 2px rgba(16,24,20,.05),0 8px 24px -18px rgba(16,24,20,.35);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans Thai","Leelawadee UI","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+  header{background:linear-gradient(180deg,#0f3d24,#14532d); color:#fff; padding:34px 0 24px}
+  .head-top{display:flex; gap:18px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap}
+  .eyebrow{margin:0 0 8px; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:#bfe3c8}
+  h1{margin:0; font-size:clamp(24px,3.6vw,34px); line-height:1.15; letter-spacing:-.02em}
+  .sub{margin:8px 0 0; color:#d7e8db; max-width:70ch; font-size:14px}
+  .stats{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px}
+  .stat{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); border-radius:10px; padding:8px 14px}
+  .stat b{display:block; font-size:20px; line-height:1.2}
+  .stat span{font-size:12px; color:#cfe6d5}
+  .stats .stat.click{border-color:transparent; background:rgba(255,255,255,.14)}
+  .head-actions{display:flex; gap:8px; align-items:center; margin-top:4px}
+  .menu{position:relative}
+  .menu>summary{
+    list-style:none; cursor:pointer; background:rgba(255,255,255,.12); color:#fff;
+    border:1px solid rgba(255,255,255,.25); padding:8px 14px; border-radius:10px; font-size:13.5px;
+  }
+  .menu>summary::-webkit-details-marker{display:none}
+  .menu>summary::after{content:" ▾"}
+  .menu-panel{
+    position:absolute; right:0; top:calc(100% + 6px); z-index:60; background:var(--card); color:var(--ink);
+    border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 32px -18px rgba(0,0,0,.5);
+    padding:6px; min-width:230px; display:flex; flex-direction:column;
+  }
+  .menu-panel button{
+    text-align:left; background:none; border:0; padding:9px 11px; border-radius:8px;
+    font:inherit; font-size:13.5px; cursor:pointer; color:var(--ink);
+  }
+  .menu-panel button:hover{background:var(--accent-soft)}
+  .menu-panel hr{border:0; border-top:1px solid var(--line); margin:4px 2px}
+  main{padding:22px 0 60px}
+  .toolbar{
+    position:sticky; top:0; z-index:30; background:rgba(245,247,244,.94);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--line); padding:14px 0 12px; margin:0 0 18px;
+  }
+  .controls{display:grid; grid-template-columns:minmax(220px,2fr) repeat(4,minmax(130px,1fr)); gap:10px}
+  .controls input,.controls select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px;
+    background:var(--card); color:var(--ink); font:inherit; font-size:14px;
+  }
+  .controls input:focus,.controls select:focus{outline:2px solid #86b795; outline-offset:1px; border-color:#86b795}
+  .row2{display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:10px}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    border:1px solid var(--line); background:var(--card); color:var(--muted);
+    border-radius:999px; padding:5px 12px; font:inherit; font-size:13px; cursor:pointer;
+  }
+  .chip:hover{border-color:#b9c9bc}
+  .chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+  .toggle{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none}
+  .toggle input{accent-color:var(--accent); width:15px; height:15px}
+  .count{margin:0 0 14px; font-size:13px; color:var(--muted)}
+  .count b{color:var(--ink)}
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; justify-content:center;
+    border:1px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:9px; padding:8px 13px; font:inherit; font-size:13.5px; cursor:pointer;
+  }
+  .btn:hover{border-color:#b9c9bc}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  .btn.primary:hover{background:#14532d}
+  .btn.small{padding:5px 10px; font-size:12.5px}
+  .btn.icon{padding:6px 9px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px}
+  .seg{display:inline-flex; border:1px solid var(--line); background:var(--card); border-radius:9px; padding:2px}
+  .seg-btn{border:0; background:none; color:var(--muted); font:inherit; font-size:12.5px; padding:5px 11px; border-radius:7px; cursor:pointer}
+  .seg-btn[aria-pressed="true"]{background:var(--accent); color:#fff}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px 18px 14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:11px}
+  .card-top{display:flex; justify-content:space-between; align-items:center; gap:10px}
+  .prov{font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); padding:4px 9px; border-radius:6px}
+  .badge{font-size:11px; font-weight:600; padding:4px 8px; border-radius:6px; white-space:nowrap}
+  .badge.high{background:var(--accent-soft); color:var(--accent)}
+  .badge.medium{background:var(--amber-soft); color:var(--amber)}
+  .badge.low{background:var(--grey-soft); color:var(--grey)}
+  .card h2{margin:0; font-size:17px; line-height:1.3; letter-spacing:-.01em}
+  .th{margin:-4px 0 0; color:var(--muted); font-size:13.5px}
+  .addr{margin:0; color:var(--muted); font-size:12px}
+  .opcats{display:flex; flex-wrap:wrap; gap:5px; align-items:center; min-height:22px}
+  .cat-pill{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:999px; color:#fff; white-space:nowrap}
+  .cat-empty{font-size:12px; color:#a3aca5}
+  .add-cat{
+    border:1px dashed #b9c9bc; background:none; color:var(--muted); border-radius:999px;
+    font:inherit; font-size:11.5px; padding:2px 8px; cursor:pointer;
+  }
+  .add-cat:hover{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
+  .facts{display:grid; grid-template-columns:repeat(2,1fr); gap:8px 14px; margin:0; padding:12px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .facts div{min-width:0}
+  .facts dt{font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
+  .facts dd{margin:1px 0 0; font-size:13.5px; font-variant-numeric:tabular-nums}
+  .contacts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+  .contacts li{display:grid; grid-template-columns:78px 1fr; gap:8px; align-items:baseline; font-size:13.5px; min-width:0}
+  .k{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .contacts a{color:#0f5f36; text-decoration:none; overflow-wrap:anywhere; border-bottom:1px solid transparent}
+  .contacts a:hover{border-bottom-color:#0f5f36}
+  .none{color:#a3aca5}
+  .card-foot{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:auto; padding-top:10px; border-top:1px solid var(--line)}
+  details.notes{border:0; padding:0}
+  details.notes summary{cursor:pointer; font-size:12.5px; color:var(--muted); list-style:none}
+  details.notes summary::-webkit-details-marker{display:none}
+  details.notes summary::before{content:"▸ "; color:var(--accent)}
+  details.notes[open] summary::before{content:"▾ "}
+  .notes-body{margin:8px 0 0; font-size:12.5px; color:var(--muted)}
+  .sources{margin:6px 0 0; padding-left:16px; font-size:12px; color:#7a857c; overflow-wrap:anywhere}
+  .sources li{margin:2px 0}
+  .empty{text-align:center; color:var(--muted); padding:56px 0}
+  .grid.view-list{grid-template-columns:1fr; gap:10px}
+  .row{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    box-shadow:var(--shadow); display:grid; gap:12px; align-items:center;
+    grid-template-columns:minmax(200px,2.2fr) minmax(230px,2.4fr) minmax(130px,1.2fr) auto;
+  }
+  .row h2{margin:0; font-size:15px; line-height:1.3}
+  .row .th{margin:2px 0 0; font-size:12.5px}
+  .row .opcats{margin-top:5px}
+  .row-facts{display:flex; flex-wrap:wrap; gap:4px 18px; margin:0}
+  .row-facts dt{font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted)}
+  .row-facts dd{margin:0; font-size:13px; font-variant-numeric:tabular-nums}
+  .row-channels{display:flex; flex-wrap:wrap; gap:5px}
+  .ch{
+    font-size:11.5px; color:#0f5f36; text-decoration:none; background:#f3f8f4;
+    border:1px solid #cfe0d4; border-radius:999px; padding:2px 8px;
+  }
+  .ch:hover{border-color:var(--accent)}
+  .row > .btn{justify-self:start}
+  footer{border-top:1px solid var(--line); padding:24px 0 40px; color:var(--muted); font-size:12.5px}
+  footer p{margin:6px 0}
+  .toplink{color:var(--accent); text-decoration:none; cursor:pointer}
+  /* dialogs */
+  dialog{
+    border:0; border-radius:16px; padding:0; width:min(660px,calc(100vw - 28px)); max-height:88vh;
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.6); color:var(--ink); background:var(--card);
+  }
+  dialog::backdrop{background:rgba(10,18,13,.48)}
+  dialog form{display:flex; flex-direction:column; max-height:88vh}
+  .modal-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:18px 20px 12px; border-bottom:1px solid var(--line)}
+  .modal-head h2{margin:0; font-size:18px}
+  .modal-head p{margin:3px 0 0; font-size:12.5px; color:var(--muted)}
+  .modal-body{padding:16px 20px; overflow:auto; display:flex; flex-direction:column; gap:14px}
+  .modal-foot{padding:13px 20px; border-top:1px solid var(--line); display:flex; gap:9px; justify-content:flex-end; align-items:center}
+  .modal-foot .spacer{flex:1}
+  .field{display:flex; flex-direction:column; gap:5px}
+  .field label{font-size:12px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--muted)}
+  .field input,.field select,.field textarea{
+    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:9px;
+    font:inherit; font-size:14px; background:var(--card); color:var(--ink);
+  }
+  .field textarea{min-height:84px; resize:vertical}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid #86b795; outline-offset:1px}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .hint{font-size:12px; color:var(--muted); margin:0}
+  .cat-checks{display:grid; grid-template-columns:1fr 1fr; gap:6px 12px}
+  .cat-check{display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer}
+  .cat-check input{accent-color:var(--accent); width:15px; height:15px}
+  .dot{width:10px; height:10px; border-radius:50%; flex:none}
+  .cat-rows{display:flex; flex-direction:column; gap:8px}
+  .cat-row{display:grid; grid-template-columns:1fr 112px 30px; gap:10px; align-items:center}
+  .cat-row input{padding:8px 10px; border:1px solid var(--line); border-radius:8px; font:inherit; font-size:14px}
+  .swatches{display:flex; flex-wrap:wrap; gap:4px}
+  .swatch{
+    width:18px; height:18px; padding:0; border-radius:50%; cursor:pointer;
+    border:1px solid rgba(0,0,0,.18); box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+  }
+  .swatch:hover{transform:scale(1.12)}
+  .swatch.on{outline:2px solid var(--ink); outline-offset:2px}
+  .iconbtn{border:1px solid var(--line); background:var(--card); border-radius:8px; width:30px; height:30px; cursor:pointer; color:var(--muted); line-height:1}
+  .iconbtn:hover{color:var(--red); border-color:#f0c9c9; background:var(--red-soft)}
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translate(-50%,20px); opacity:0;
+    background:#111c15; color:#fff; padding:10px 16px; border-radius:10px; font-size:13px;
+    transition:.18s; pointer-events:none; z-index:100;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+  @media (max-width:900px){
+    .controls{grid-template-columns:1fr 1fr}
+    .controls input{grid-column:1/-1}
+    .row{grid-template-columns:1fr}
+  }
+  @media (max-width:760px){
+    .toolbar{position:static; backdrop-filter:none; background:var(--bg)}
+    .controls{grid-template-columns:1fr 1fr}
+    .grid{grid-template-columns:1fr}
+    .facts{grid-template-columns:1fr 1fr}
+    .two{grid-template-columns:1fr}
+    .cat-checks{grid-template-columns:1fr}
+  }
+  @media print{
+    .toolbar,.head-actions,.card-foot,.no-print{display:none}
+    body{background:#fff}
+    .card{break-inside:avoid; box-shadow:none}
+  }
+  body.gated{overflow:hidden}
+  #gate{
+    position:fixed; inset:0; z-index:200; display:grid; place-items:center; padding:20px; overflow:auto;
+    background:radial-gradient(1200px 620px at 30% -10%, #14532d, #0b1d13 72%);
+  }
+  #gate[hidden]{display:none}
+  .gate-card{
+    width:min(480px,100%); background:#fff; border-radius:16px; padding:26px;
+    box-shadow:0 26px 64px -22px rgba(0,0,0,.55);
+  }
+  .gate-card .eyebrow{color:var(--accent); margin:0 0 6px}
+  .gate-card h2{margin:0 0 6px; font-size:24px}
+  .gate-card > p{margin:0 0 16px; color:var(--muted); font-size:13.5px}
+  .gate-card .drop{
+    display:flex; flex-direction:column; align-items:center; gap:4px; padding:26px 18px;
+    border:2px dashed #b9c9bc; border-radius:12px; background:#f8faf8; cursor:pointer;
+    text-align:center; transition:.15s;
+  }
+  .gate-card .drop:hover,.gate-card .drop.dragging{border-color:var(--accent); background:var(--accent-soft)}
+  .gate-card .drop .drop-icon{font-size:22px; line-height:1; color:var(--accent)}
+  .gate-card .drop strong{font-size:15px; color:var(--ink)}
+  .gate-card .drop span{font-size:12.5px; color:var(--muted)}
+  #gateErr{min-height:18px; margin:10px 0 0; color:var(--red); font-size:13px}
+  .gate-hint{margin:12px 0 0; font-size:12px; color:var(--muted)}
+</style>
+</head>
+<body id="page-top">
+<div id="gate" hidden>
+  <div class="gate-card" id="gateCard">
+    <p class="eyebrow">Thailand · GACP-certified cultivation</p>
+    <h2>Open your farm list</h2>
+    <p>Choose a CSV of GACP-certified cultivation sites. The file is read in this browser — nothing is uploaded.</p>
+    <label class="drop" id="dropZone">
+      <input type="file" id="fileCsv" accept=".csv,text/csv" hidden>
+      <span class="drop-icon" aria-hidden="true">⇪</span>
+      <strong>Choose a CSV file</strong>
+      <span>or drop it here</span>
+    </label>
+    <p id="gateErr" role="alert"></p>
+    <p class="gate-hint">Works with the 291-row dashboard export and with merged lists that add Website, Facebook, LINE, Instagram, Email, Phone, Address, Notes or Sources columns.</p>
+  </div>
+</div>
+<header>
+  <div class="wrap">
+    <div class="head-top">
+      <div>
+        <p class="eyebrow">Thailand · GACP-certified cultivation</p>
+        <h1>Farm Manager</h1>
+        <p class="sub">Load the GACP dashboard export — or any merged CSV with contact columns — and every site is merged into company groups. Add categories, notes and edits; everything stays in this browser and can be exported as a backup or a standalone copy.</p>
+      </div>
+      <div class="head-actions">
+        <details class="menu" id="dataMenu">
+          <summary>Data</summary>
+          <div class="menu-panel">
+            <button type="button" id="btnLoadCsv">Load CSV…</button>
+            <hr>
+            <button type="button" id="btnExportJson">Export backup (.json)</button>
+            <button type="button" id="btnExportHtml">Save standalone copy (.html)</button>
+            <button type="button" id="btnImportJson">Import backup…</button>
+            <hr>
+            <button type="button" id="btnReset">Clear loaded data</button>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section id="view-dir">
+      <div class="toolbar">
+        <div class="controls">
+          <input id="q" type="search" placeholder="Search company, province, email, category, note…  (press /)" aria-label="Search companies">
+          <select id="province" aria-label="Filter by province"><option value="">All provinces</option></select>
+          <select id="catFilter" aria-label="Filter by category"><option value="">All categories</option></select>
+          <select id="confidence" aria-label="Filter by confidence">
+            <option value="">Any confidence</option>
+            <option value="high">High confidence</option>
+            <option value="medium">Medium confidence</option>
+            <option value="low">Low confidence</option>
+          </select>
+          <select id="sort" aria-label="Sort order">
+            <option value="area">Largest area first</option>
+            <option value="name">Name A–Z</option>
+            <option value="province">Province A–Z</option>
+            <option value="contacts">Most channels</option>
+          </select>
+        </div>
+        <div class="row2">
+          <div class="chips" id="chips" aria-label="Filter by channel">
+            <button class="chip" data-ch="website" aria-pressed="false">Has website</button>
+            <button class="chip" data-ch="facebook" aria-pressed="false">Has Facebook</button>
+            <button class="chip" data-ch="line" aria-pressed="false">Has LINE</button>
+            <button class="chip" data-ch="instagram" aria-pressed="false">Has Instagram</button>
+            <button class="chip" data-ch="email" aria-pressed="false">Has email</button>
+            <button class="chip" data-ch="phone" aria-pressed="false">Has phone</button>
+          </div>
+          <label class="toggle"><input type="checkbox" id="hasContact"> With contact only</label>
+          <div class="seg" role="group" aria-label="View" style="margin-left:auto">
+            <button type="button" class="seg-btn" data-view="cards" aria-pressed="true">Cards</button>
+            <button type="button" class="seg-btn" data-view="list" aria-pressed="false">List</button>
+          </div>
+          <button class="btn small" id="btnCats">Categories…</button>
+        </div>
+      </div>
+      <p class="count" id="count" aria-live="polite"></p>
+      <section class="grid" id="grid" aria-label="Operators"></section>
+      <p class="empty" id="empty" hidden>No operators match those filters.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Source:</strong> the CSV you load — for example the Looker Studio “Dashboard GACP (ปัจจุบัน)” export (291 rows), or a merged list that adds contact columns. Contacts collected 10 November 2026.</p>
+    <p>Only publicly published business channels are listed; individual licensed farmers are intentionally left blank. Verify before outreach. The CSV stays in this browser and is never uploaded; your categories and edits are stored here too. Use <em>Data → Save standalone copy</em> to bake the current list into a portable file.</p>
+    <p class="no-print"><a class="toplink" onclick="window.scrollTo({top:0,behavior:'smooth'})">Back to top ↑</a></p>
+  </div>
+</footer>
+
+<input type="file" id="fileJson" accept="application/json,.json" hidden>
+
+<dialog id="opDlg">
+  <form method="dialog" id="opForm">
+    <div class="modal-head">
+      <div><h2>Edit operator</h2><p id="opDlgSub"></p></div>
+      <button class="btn small" type="button" data-close>Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="two">
+        <div class="field"><label for="fEn">Name (EN)</label><input id="fEn" required></div>
+        <div class="field"><label for="fTh">Name (TH)</label><input id="fTh"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label for="fProv">Province</label><input id="fProv"></div>
+        <div class="field"><label for="fCert">GACP certificate(s)</label><input id="fCert"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label for="fWeb">Website</label><input id="fWeb" placeholder="https://"></div>
+        <div class="field"><label for="fFb">Facebook</label><input id="fFb" placeholder="https://facebook.com/…"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label for="fLine">LINE</label><input id="fLine" placeholder="@id or https://line.me/…"></div>
+        <div class="field"><label for="fIg">Instagram</label><input id="fIg" placeholder="https://instagram.com/…"></div>
+      </div>
+      <div class="field"><label for="fAddress">Address</label><input id="fAddress" placeholder="Registered / business address"></div>
+      <div class="two">
+        <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" placeholder="name@company.com"></div>
+        <div class="field"><label for="fPhone">Phone</label><input id="fPhone" type="tel" placeholder="+66 …"></div>
+      </div>
+      <div class="field"><label for="fNotes">Notes</label><textarea id="fNotes"></textarea></div>
+      <div class="field">
+        <label>Categories</label>
+        <div class="cat-checks" id="opCatsList"></div>
+        <p class="hint" id="opCatsHint"></p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="catDlg">
+  <form method="dialog" id="catForm">
+    <div class="modal-head">
+      <div><h2>Categories</h2><p>Group suppliers however you like — e.g. “Priority”, “Indoor only”, “Has export licence”.</p></div>
+      <button class="btn small" type="button" data-close>Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-rows" id="catRows"></div>
+      <p class="hint" id="catHint"></p>
+      <button class="btn small" type="button" id="catAdd">+ Add category</button>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn primary" type="submit">Done</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="seed">{"seedId":"empty","operators":[],"categories":[],"assignments":{}}</script>
+<script>
+const COLORS = ["#166534","#0e7490","#7c3aed","#b45309","#be123c","#4d7c0f","#334155","#c2410c","#0369a1","#6d28d9"];
+const STORE = "gacp-manager-v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const fmt = n => n ? n.toLocaleString("en-US") : "—";
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+/* ---------------- CSV input ---------------- */
+function parseCsv(text){
+  const rows = [];
+  let row = [], cur = "", quoted = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (quoted){
+      if (c === '"'){
+        if (text[i + 1] === '"'){ cur += '"'; i++; }
+        else quoted = false;
+      } else cur += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ","){ row.push(cur); cur = ""; }
+    else if (c === "\n"){ row.push(cur.replace(/\r$/, "")); rows.push(row); row = []; cur = ""; }
+    else cur += c;
+  }
+  if (cur.length || row.length){ row.push(cur.replace(/\r$/, "")); rows.push(row); }
+  return rows;
+}
+const cleanName = s => String(s || "").replace(/\\n/g, " ").replace(/\s+/g, " ").trim();
+const normName = value => {
+  let s = String(value || "").normalize("NFC");
+  s = s.replace(/\\n/g, " ").replace(/[\u0000-\u001f]/g, " ");
+  s = s.replace(/\([^)]*\)/g, " ").replace(/（[^）]*）/g, " ");
+  s = s.replace(/^(?:นาย|นางสาว|นาง)\s*/, "");
+  s = s.toLowerCase().replace(/[.,'"’`]/g, " ");
+  s = s.replace(/บริษัท|จำกัด|จํากัด|มหาชน/g, " ");
+  s = s.replace(/\b(?:co|ltd|limited|llimited|company|public|the)\b/g, " ");
+  return s.replace(/[^0-9a-z\u0e00-\u0e7f]+/g, " ").trim();
+};
+const numVal = v => {
+  const n = parseFloat(String(v || "").replace(/,/g, ""));
+  return isFinite(n) ? n : 0;
+};
+const stripSiteSuffix = s => String(s || "").replace(/\s*[\(（][^\)）]*[\)）]\s*$/, "").trim();
+const SYSTEM_ORDER = ["Indoor","Greenhouse","Outdoor"];
+const CHANNEL_KEYS = ["website","facebook","line","instagram","email","phone"];
+
+function buildFromCsv(text){
+  const rows = parseCsv(String(text).replace(/^\uFEFF/, ""));
+  if (rows.length < 2) throw new Error("That file has no data rows.");
+  const header = rows[0].map(h => h.trim());
+  const low = header.map(h => h.toLowerCase().replace(/\s+/g, " "));
+  const at = (...names) => {
+    for (const n of names){ const i = low.indexOf(n); if (i >= 0) return i; }
+    return -1;
+  };
+  const I = {
+    en: at("name (en)","name en","company name (en)","company","operator","name"),
+    th: at("name (th)","name th","company name (th)"),
+    prov: at("province (en)","province (th)","province"),
+    sys: at("system (en)","system (th)","system","cultivation system"),
+    area: at("area m2 (en)","area m2","total area (m2)","area (m2)","area"),
+    plants: at("plants/year (en)","plants/year","plants per year","plants/yr"),
+    cert: at("gacp certificate no.","gacp cert no.","gacp certificate","certificate no.","cert no.","cert"),
+    sites: at("sites","site count"),
+    website: at("website","web"),
+    facebook: at("facebook","fb"),
+    line: at("line","line id"),
+    instagram: at("instagram","ig"),
+    email: at("email","e-mail"),
+    phone: at("phone","tel","telephone","mobile"),
+    address: at("address"),
+    confidence: at("confidence"),
+    notes: at("notes","note","comment"),
+    sources: at("sources","source")
+  };
+  if (I.en < 0 && I.th < 0) throw new Error("No name column found — expected “Name (EN)” or “Name (TH)”.");
+
+  const groups = new Map();
+  for (const r of rows.slice(1)){
+    const en = cleanName(I.en >= 0 ? r[I.en] : "");
+    const th = cleanName(I.th >= 0 ? r[I.th] : "");
+    if (!en && !th) continue;
+    const key = normName(en) || normName(th);
+    if (!groups.has(key)) groups.set(key, {key, enCount:{}, thCount:{}, prov:[], sys:[], certs:[], src:[], area:0, plants:0, sites:0});
+    const g = groups.get(key);
+    if (en) g.enCount[en] = (g.enCount[en] || 0) + 1;
+    if (th) g.thCount[th] = (g.thCount[th] || 0) + 1;
+    g.area += numVal(I.area >= 0 ? r[I.area] : "");
+    g.plants += numVal(I.plants >= 0 ? r[I.plants] : "");
+    g.sites += I.sites >= 0 ? Math.max(1, numVal(r[I.sites]) || 1) : 1;
+    const put = (arr, v) => { v = String(v || "").trim(); if (v && !arr.includes(v)) arr.push(v); };
+    put(g.prov, I.prov >= 0 ? r[I.prov] : "");
+    put(g.sys, I.sys >= 0 ? r[I.sys] : "");
+    const cert = String(I.cert >= 0 ? r[I.cert] || "" : "").trim();
+    if (cert && cert !== "-") cert.split(",").forEach(c => put(g.certs, c.trim()));
+    for (const k of CHANNEL_KEYS) if (I[k] >= 0 && !g[k]){ const v = String(r[I[k]] || "").trim(); if (v) g[k] = v; }
+    if (I.address >= 0 && !g.address){ const v = String(r[I.address] || "").trim(); if (v) g.address = v; }
+    if (I.confidence >= 0 && !g.confidence){
+      const v = String(r[I.confidence] || "").trim().toLowerCase();
+      if (["high","medium","low"].includes(v)) g.confidence = v;
+    }
+    if (I.notes >= 0 && !g.notes){ const v = String(r[I.notes] || "").trim(); if (v) g.notes = v; }
+    if (I.sources >= 0) String(r[I.sources] || "").split(/\s*\|\s*|\s*\n\s*/).forEach(s => put(g.src, s));
+  }
+  if (!groups.size) throw new Error("No company names found in that CSV.");
+
+  const mode = counts => Object.entries(counts).sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || "";
+  const operators = [...groups.values()].map(g => {
+    const en = mode(g.enCount) || g.th || "";
+    const th = mode(g.thCount) || en;
+    const o = { id: 0, no: "", en: cleanName(en), th: cleanName(th) };
+    o.province = g.prov.join(", ");
+    o.systems = SYSTEM_ORDER.filter(s => g.sys.includes(s)).concat(g.sys.filter(s => !SYSTEM_ORDER.includes(s))).join("; ");
+    o.area = g.area;
+    o.plants = g.plants;
+    o.cert = g.certs.join(",");
+    o.sites = g.sites || 1;
+    for (const k of CHANNEL_KEYS) o[k] = g[k] || "";
+    o.address = g.address || "";
+    o.confidence = g.confidence || "";
+    o.notes = g.notes || "";
+    o.sources = g.src;
+    if (o.sites > 1){
+      o.en = cleanName(stripSiteSuffix(o.en)) || o.en;
+      o.th = cleanName(stripSiteSuffix(o.th)) || o.th;
+    }
+    return o;
+  });
+  operators.sort((a,b) => b.area - a.area || a.en.localeCompare(b.en));
+  operators.forEach((o,i) => { o.id = i + 1; o.no = String(i + 1); });
+  return {operators, rowCount: rows.length - 1};
+}
+
+function listHash(list){
+  let h = 2166136261;
+  const s = JSON.stringify(list.map(o => [o.en, o.th, o.province, o.area, o.sites]));
+  for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0).toString(36);
+}
+
+/* ---------------- local state ---------------- */
+const EMBEDDED = JSON.parse($("#seed").textContent);
+let state = null;
+function normalizeState(s){
+  if (!s || !Array.isArray(s.operators)) return null;
+  s.categories = Array.isArray(s.categories) ? s.categories : [];
+  s.assignments = s.assignments && typeof s.assignments === "object" ? s.assignments : {};
+  return s;
+}
+function loadSaved(){
+  try{ return normalizeState(JSON.parse(localStorage.getItem(STORE) || "null")); }
+  catch(e){ return null; }
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(state)); }
+  catch(e){ toast("Could not save locally — export a backup"); }
+}
+function remapAssignments(prev, next){
+  if (!prev) return {};
+  const byName = new Map();
+  next.forEach(o => { const k = normName(o.en) || normName(o.th); if (k) byName.set(k, o); });
+  const out = {};
+  for (const o of prev.operators || []){
+    const t = byName.get(normName(o.en) || normName(o.th));
+    const cats = (prev.assignments || {})[o.id] || [];
+    if (t && cats.length) out[t.id] = [...new Set([...(out[t.id] || []), ...cats])];
+  }
+  return out;
+}
+
+/* ---------------- CSV gate ---------------- */
+function showGate(msg){
+  $("#gate").hidden = false;
+  document.body.classList.add("gated");
+  $("#gateErr").textContent = msg || "";
+}
+function hideGate(){
+  $("#gate").hidden = true;
+  document.body.classList.remove("gated");
+}
+let csvFromGate = false;
+function pickCsv(fromGate){
+  csvFromGate = fromGate;
+  $("#fileCsv").value = "";
+  $("#fileCsv").click();
+}
+async function openCsvFile(file, fromGate){
+  if (!file) return;
+  const fail = msg => { if (fromGate) $("#gateErr").textContent = msg; else alert(msg); };
+  try{
+    if (!/\.csv$/i.test(file.name)) throw new Error("Choose a .csv file.");
+    if (file.size > 25 * 1024 * 1024) throw new Error("That file is larger than 25 MB.");
+    const built = buildFromCsv(await file.text());
+    if (state && state.operators.length && !confirm(`Replace the current ${state.operators.length} companies with ${built.operators.length} from ${file.name}?`)) return;
+    state = {
+      seedId: "csv-" + listHash(built.operators),
+      source: file.name,
+      operators: built.operators,
+      categories: state ? state.categories : [],
+      assignments: remapAssignments(state, built.operators)
+    };
+    save();
+    hideGate();
+    syncChips();
+    syncView();
+    renderAll();
+    toast(`Loaded ${built.operators.length} companies · ${built.rowCount} rows`);
+  }catch(err){
+    fail(err.message || "Could not read that CSV.");
+  }
+}
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+const opById = id => state.operators.find(o => o.id === +id);
+const catById = id => state.categories.find(c => c.id === id);
+const opCats = id => (state.assignments[id] || []).map(catById).filter(Boolean);
+const channelCount = o => ["website","facebook","line","instagram","email","phone"].filter(k => o[k]).length;
+
+const dui = {q:"", prov:"", conf:"", cat:"", only:false, chs:new Set(), sort:"area"};
+const VIEW_KEY = "gacp-view";
+let gacpView = localStorage.getItem(VIEW_KEY) === "list" ? "list" : "cards";
+
+/* ---------------- directory ---------------- */
+function linkLabel(k, v){
+  if (k === "email") return v;
+  if (k === "phone") return v;
+  if (k === "line"){
+    const m = v.match(/@[\w.-]+/); return m ? m[0] : v.replace(/^https?:\/\//, "");
+  }
+  try{
+    const u = new URL(v, "https://x/");
+    let p = decodeURIComponent(u.pathname.replace(/\/+$/, ""));
+    if (p.length > 34) p = p.slice(0, 32) + "…";
+    return (u.hostname.replace(/^www\./, "") + p) || u.hostname;
+  }catch(e){ return v; }
+}
+function hrefFor(k, v){
+  if (k === "email") return "mailto:" + v;
+  if (k === "phone") return "tel:" + String(v).replace(/[^\d+]/g, "");
+  if (k === "line") return /^https?:\/\//i.test(v) ? v : "https://line.me/ti/p/~" + v.replace(/^@/, "@");
+  if (k === "instagram") return /^https?:\/\//i.test(v) ? v : "https://instagram.com/" + v.replace(/^@/, "");
+  return /^https?:\/\//i.test(v) ? v : "https://" + v.replace(/^\/+/, "");
+}
+const CHANNELS = [["Website","website"],["Facebook","facebook"],["LINE","line"],["Instagram","instagram"],["Email","email"],["Phone","phone"]];
+
+function card(o){
+  const contacts = CHANNELS.map(([label,k]) => {
+    const v = o[k];
+    if (!v) return `<li><span class="k">${label}</span><span class="none">not found</span></li>`;
+    return `<li><span class="k">${label}</span><a href="${esc(hrefFor(k,v))}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(k,v))}</a></li>`;
+  }).join("");
+  const cats = opCats(o.id);
+  const pills = cats.map(c => `<span class="cat-pill" style="background:${esc(c.color)}">${esc(c.name)}</span>`).join("");
+  const notes = o.notes || "";
+  const sources = (o.sources || []).map(s => `<li><a href="${esc(s)}" target="_blank" rel="noopener noreferrer">${esc(s.replace(/^https?:\/\//,"").slice(0,70))}</a></li>`).join("");
+  return `<article class="card" data-id="${o.id}">
+    <div class="card-top">
+      <span class="prov">${esc(o.province)}</span>
+      ${o.confidence ? `<span class="badge ${esc(o.confidence)}">${esc(o.confidence)} confidence</span>` : ""}
+    </div>
+    <h2>${esc(o.en)}</h2>
+    <p class="th">${esc(o.th)}</p>
+    ${o.address ? `<p class="addr">${esc(o.address)}</p>` : ""}
+    <div class="opcats">${pills || '<span class="cat-empty">No category</span>'}<button class="add-cat" data-act="edit" data-id="${o.id}" aria-label="Edit categories for ${esc(o.en)}">${cats.length ? "+ edit" : "+ add"}</button></div>
+    <dl class="facts">
+      <div><dt>Cultivation area</dt><dd>${fmt(o.area)} m²</dd></div>
+      <div><dt>Plants / year</dt><dd>${fmt(o.plants)}</dd></div>
+      <div><dt>System</dt><dd>${esc(o.systems)}</dd></div>
+      <div><dt>Certificates</dt><dd>${esc(o.cert)}</dd></div>
+      ${o.sites > 1 ? `<div><dt>Sites</dt><dd>${o.sites}</dd></div>` : ""}
+    </dl>
+    <ul class="contacts">${contacts}</ul>
+    <div class="card-foot">
+      <button class="btn small" data-act="edit" data-id="${o.id}">Edit</button>
+    </div>
+    ${(notes || sources) ? `<details class="notes"><summary>Notes &amp; sources</summary>
+      ${notes ? `<p class="notes-body">${esc(notes)}</p>` : ""}
+      ${sources ? `<ul class="sources">${sources}</ul>` : ""}
+    </details>` : ""}
+  </article>`;
+}
+
+function row(o){
+  const cats = opCats(o.id);
+  const pills = cats.map(c => `<span class="cat-pill" style="background:${esc(c.color)}">${esc(c.name)}</span>`).join("");
+  const channels = CHANNELS.map(([label,k]) => {
+    const v = o[k];
+    return v ? `<a class="ch" href="${esc(hrefFor(k,v))}" target="_blank" rel="noopener noreferrer" title="${label}">${label}</a>` : "";
+  }).join("");
+  return `<article class="row" data-id="${o.id}">
+    <div class="row-main">
+      <h2>${esc(o.en)}</h2>
+      <p class="th">${esc(o.th)}</p>
+      ${o.address ? `<p class="addr">${esc(o.address)}</p>` : ""}
+      <div class="opcats">${pills || '<span class="cat-empty">No category</span>'}<button class="add-cat" data-act="edit" data-id="${o.id}" aria-label="Edit categories for ${esc(o.en)}">${cats.length ? "+ edit" : "+ add"}</button></div>
+    </div>
+    <dl class="row-facts">
+      <div><dt>Province</dt><dd>${esc(o.province)}</dd></div>
+      <div><dt>System</dt><dd>${esc(o.systems)}</dd></div>
+      <div><dt>Area</dt><dd>${fmt(o.area)} m²</dd></div>
+      <div><dt>Plants</dt><dd>${fmt(o.plants)}</dd></div>
+      <div><dt>Cert</dt><dd>${esc(o.cert || "—")}</dd></div>
+      ${o.sites > 1 ? `<div><dt>Sites</dt><dd>${o.sites}</dd></div>` : ""}
+    </dl>
+    <div class="row-channels">${channels || '<span class="none">No public channels</span>'}</div>
+    <button class="btn small" data-act="edit" data-id="${o.id}">Edit</button>
+  </article>`;
+}
+
+function renderDirectory(){
+  const q = dui.q.toLowerCase();
+  let list = state.operators.filter(o => {
+    if (dui.prov && o.province !== dui.prov) return false;
+    if (dui.conf && o.confidence !== dui.conf) return false;
+    if (dui.cat && !(state.assignments[o.id] || []).includes(dui.cat)) return false;
+    if (dui.only && channelCount(o) === 0) return false;
+    if (dui.chs.size && ![...dui.chs].some(k => o[k])) return false;
+    if (q){
+      const catNames = opCats(o.id).map(c => c.name).join(" ");
+      const hay = [o.en,o.th,o.province,o.systems,o.cert,o.website,o.facebook,o.line,o.instagram,o.email,o.phone,o.address,o.notes,catNames].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  list.sort((a,b) =>
+    dui.sort === "name" ? a.en.localeCompare(b.en) :
+    dui.sort === "province" ? a.province.localeCompare(b.province) || a.en.localeCompare(b.en) :
+    dui.sort === "contacts" ? channelCount(b) - channelCount(a) || b.area - a.area :
+    b.area - a.area);
+
+  $("#grid").innerHTML = list.map(gacpView === "list" ? row : card).join("");
+  $("#empty").hidden = list.length > 0;
+  const withC = list.filter(o => channelCount(o) > 0).length;
+  $("#count").innerHTML = `Showing <b>${list.length}</b> of ${state.operators.length} operators · <b>${withC}</b> with a contact`;
+}
+
+/* ---------------- stats ---------------- */
+function renderStats(){
+  const withC = state.operators.filter(o => channelCount(o) > 0).length;
+  const sites = state.operators.reduce((n, o) => n + (o.sites || 0), 0);
+  $("#stats").innerHTML = [
+    [state.operators.length, "companies"],
+    [sites, "sites"],
+    [withC, "with a contact"],
+    [state.categories.length, "categories"]
+  ].map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+}
+
+/* ---------------- selects ---------------- */
+function fillSelect(sel, first, items){
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${first}</option>` + items.map(([v,l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+function renderSelects(){
+  const provs = [...new Set(state.operators.map(o => o.province))].sort();
+  fillSelect($("#province"), "All provinces", provs.map(p => [p,p]));
+  const cats = state.categories.slice().sort((a,b) => a.name.localeCompare(b.name));
+  const catOpts = cats.map(c => [c.id, c.name]);
+  fillSelect($("#catFilter"), "All categories", catOpts);
+}
+
+/* ---------------- operator dialog ---------------- */
+let editingOp = null;
+function renderOpCats(selected){
+  const list = $("#opCatsList");
+  if (!state.categories.length){
+    list.innerHTML = `<p class="hint">No categories yet.</p>`;
+    $("#opCatsHint").innerHTML = `Create one with <strong>Categories…</strong> in the toolbar, then assign it here.`;
+    return;
+  }
+  list.innerHTML = state.categories.map(c => `<label class="cat-check"><input type="checkbox" value="${esc(c.id)}" ${selected.includes(c.id) ? "checked" : ""}><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}</label>`).join("");
+  $("#opCatsHint").textContent = "Tick any that apply — saved with the operator.";
+}
+
+function openOp(id){
+  const o = opById(id); if (!o) return;
+  editingOp = o.id;
+  $("#opDlgSub").textContent = `${o.th} · ${o.province}`;
+  $("#fEn").value = o.en || ""; $("#fTh").value = o.th || "";
+  $("#fProv").value = o.province || ""; $("#fCert").value = o.cert || "";
+  $("#fWeb").value = o.website || ""; $("#fFb").value = o.facebook || "";
+  $("#fLine").value = o.line || ""; $("#fIg").value = o.instagram || "";
+  $("#fEmail").value = o.email || ""; $("#fPhone").value = o.phone || ""; $("#fAddress").value = o.address || ""; $("#fNotes").value = o.notes || "";
+  renderOpCats(state.assignments[o.id] || []);
+  $("#opDlg").showModal();
+}
+
+$("#opForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const o = opById(editingOp); if (!o) return;
+  o.en = $("#fEn").value.trim() || o.en;
+  o.th = $("#fTh").value.trim();
+  o.province = $("#fProv").value.trim();
+  o.cert = $("#fCert").value.trim();
+  o.website = $("#fWeb").value.trim();
+  o.facebook = $("#fFb").value.trim();
+  o.line = $("#fLine").value.trim();
+  o.instagram = $("#fIg").value.trim();
+  o.email = $("#fEmail").value.trim();
+  o.phone = $("#fPhone").value.trim();
+  o.address = $("#fAddress").value.trim();
+  o.notes = $("#fNotes").value.trim();
+  const selected = [...$("#opCatsList").querySelectorAll("input:checked")].map(i => i.value);
+  if (selected.length) state.assignments[o.id] = selected; else delete state.assignments[o.id];
+  save(); renderAll(); $("#opDlg").close(); toast("Operator saved");
+});
+
+/* ---------------- category dialog ---------------- */
+let catDraft = [];
+function openCats(){
+  catDraft = clone(state.categories);
+  renderCatRows();
+  $("#catDlg").showModal();
+}
+function renderCatRows(){
+  const rows = $("#catRows");
+  if (!catDraft.length){
+    rows.innerHTML = `<p class="hint">No categories yet. Add one below.</p>`;
+  } else {
+    rows.innerHTML = catDraft.map((c,i) => `<div class="cat-row" data-i="${i}">
+      <input value="${esc(c.name)}" placeholder="Category name" aria-label="Category name">
+      <div class="swatches" role="radiogroup" aria-label="Colour">${COLORS.map(col => `<button type="button" class="swatch${col===c.color?" on":""}" data-col="${col}" style="background:${col}" aria-label="Colour ${col}" aria-pressed="${col===c.color}"></button>`).join("")}</div>
+      <button class="iconbtn" type="button" data-del="${i}" title="Delete category">✕</button>
+    </div>`).join("");
+  }
+  $("#catHint").textContent = catDraft.length ? "Deleting a category removes it from every operator." : "";
+}
+$("#catAdd").addEventListener("click", () => {
+  catDraft.push({id: uid("c_"), name: "", color: COLORS[catDraft.length % COLORS.length]});
+  renderCatRows();
+  const last = $("#catRows").querySelector(".cat-row:last-child input"); last && last.focus();
+});
+$("#catRows").addEventListener("click", e => {
+  const b = e.target.closest("[data-del]");
+  if (b){ catDraft.splice(+b.dataset.del, 1); renderCatRows(); return; }
+  const sw = e.target.closest(".swatch");
+  if (!sw) return;
+  const row = sw.closest(".cat-row");
+  const c = catDraft[+row.dataset.i];
+  c.color = sw.dataset.col;
+  row.querySelectorAll(".swatch").forEach(s => {
+    const on = s.dataset.col === c.color;
+    s.classList.toggle("on", on);
+    s.setAttribute("aria-pressed", on);
+  });
+});
+$("#catRows").addEventListener("input", e => {
+  const row = e.target.closest(".cat-row"); if (!row) return;
+  const c = catDraft[+row.dataset.i];
+  if (e.target.tagName === "INPUT") c.name = e.target.value;
+});
+$("#catForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const cleaned = catDraft.map(c => ({...c, name: c.name.trim()})).filter(c => c.name);
+  const removed = state.categories.filter(c => !cleaned.some(x => x.id === c.id)).map(c => c.id);
+  state.categories = cleaned;
+  for (const opId of Object.keys(state.assignments)){
+    state.assignments[opId] = state.assignments[opId].filter(id => !removed.includes(id));
+    if (!state.assignments[opId].length) delete state.assignments[opId];
+  }
+  save(); renderAll(); $("#catDlg").close();
+  toast(`Saved ${cleaned.length} categor${cleaned.length === 1 ? "y" : "ies"}`);
+});
+
+/* ---------------- data actions ---------------- */
+function download(name, text, type){
+  const blob = new Blob([text], {type: type || "application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+$("#btnLoadCsv").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  pickCsv(false);
+});
+$("#fileCsv").addEventListener("change", e => {
+  const f = e.target.files[0];
+  openCsvFile(f, csvFromGate);
+});
+$("#btnExportJson").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  if (!state) return;
+  download("gacp-manager-backup.json", JSON.stringify(state, null, 2), "application/json");
+  toast("Backup downloaded");
+});
+$("#btnExportHtml").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  if (!state) return;
+  const snap = clone(state);
+  snap.seedId = uid("snap_");
+  const doc = document.documentElement.cloneNode(true);
+  doc.querySelector("#seed").textContent = JSON.stringify(snap);
+  doc.querySelector("#gate").hidden = true;
+  doc.body.classList.remove("gated");
+  doc.querySelectorAll("dialog").forEach(d => d.open = false);
+  doc.querySelectorAll(".menu[open]").forEach(d => d.open = false);
+  download("gacp-farm-manager.html", "<!DOCTYPE html>\n" + doc.outerHTML, "text/html");
+  toast("Standalone copy saved — opens with this list");
+});
+$("#btnImportJson").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  $("#fileJson").value = ""; $("#fileJson").click();
+});
+$("#fileJson").addEventListener("change", ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const s = normalizeState(JSON.parse(r.result));
+      if (!s) throw new Error("bad file");
+      state = s; save(); hideGate(); syncChips(); syncView(); renderAll(); toast("Backup imported");
+    }catch(err){ alert("That file is not a valid GACP manager backup."); }
+  };
+  r.readAsText(f);
+});
+$("#btnReset").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  if (!confirm("Clear the loaded farm list and your categories from this browser? Export a backup first if you need it.")) return;
+  localStorage.removeItem(STORE);
+  location.reload();
+});
+
+/* ---------------- CSV gate wiring ---------------- */
+$("#dropZone").addEventListener("click", () => { csvFromGate = true; });
+const gateCard = $("#gateCard");
+["dragenter","dragover"].forEach(ev => gateCard.addEventListener(ev, e => {
+  e.preventDefault();
+  $("#dropZone").classList.add("dragging");
+}));
+["dragleave","drop"].forEach(ev => gateCard.addEventListener(ev, e => {
+  e.preventDefault();
+  if (ev === "dragleave" && gateCard.contains(e.relatedTarget)) return;
+  $("#dropZone").classList.remove("dragging");
+}));
+gateCard.addEventListener("drop", e => {
+  const f = e.dataTransfer.files[0];
+  openCsvFile(f, true);
+});
+
+/* ---------------- wiring ---------------- */
+function syncChips(){
+  document.querySelectorAll("#chips .chip").forEach(b => {
+    b.setAttribute("aria-pressed", dui.chs.has(b.dataset.ch) ? "true" : "false");
+  });
+}
+function applyDir(){ dui.q = $("#q").value; dui.prov = $("#province").value; dui.conf = $("#confidence").value; dui.cat = $("#catFilter").value; dui.only = $("#hasContact").checked; dui.sort = $("#sort").value; renderDirectory(); }
+function renderAll(){ renderStats(); renderSelects(); renderDirectory(); }
+function syncView(){
+  $("#grid").classList.toggle("view-list", gacpView === "list");
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === gacpView));
+}
+
+$("#q").addEventListener("input", applyDir);
+$("#province").addEventListener("change", applyDir);
+$("#catFilter").addEventListener("change", applyDir);
+$("#confidence").addEventListener("change", applyDir);
+$("#sort").addEventListener("change", applyDir);
+$("#hasContact").addEventListener("change", applyDir);
+document.querySelectorAll("#chips .chip").forEach(b => b.addEventListener("click", () => {
+  dui.chs.has(b.dataset.ch) ? dui.chs.delete(b.dataset.ch) : dui.chs.add(b.dataset.ch);
+  syncChips(); renderDirectory();
+}));
+$("#btnCats").addEventListener("click", openCats);
+document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
+  gacpView = b.dataset.view;
+  try{ localStorage.setItem(VIEW_KEY, gacpView); }catch(e){}
+  syncView(); renderDirectory();
+}));
+
+document.addEventListener("click", e => {
+  const close = e.target.closest("[data-close]");
+  if (close) close.closest("dialog").close();
+  const inMenu = e.target.closest("#dataMenu");
+  document.querySelectorAll("details.menu[open]").forEach(d => { if (!inMenu) d.open = false; });
+});
+
+$("#grid").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "edit") openOp(b.dataset.id);
+});
+
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input,textarea,select")) return;
+  if (e.key === "/"){ e.preventDefault(); $("#q").focus(); }
+});
+
+const embedded = normalizeState(EMBEDDED);
+const saved = loadSaved();
+state = embedded && embedded.operators.length
+  ? (saved && saved.seedId === embedded.seedId ? saved : embedded)
+  : saved;
+if (state){
+  hideGate();
+  syncChips();
+  syncView();
+  renderAll();
+}else{
+  showGate();
+}
+</script>
+</body>
+</html>
