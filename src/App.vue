@@ -99,8 +99,13 @@ async function onImportFile(e) {
 <template>
   <div class="page">
     <header class="page-head">
-      <h1>Product Label Studio</h1>
-      <p>Happy Thai Herb Co.,Ltd — Cannabis Clinic and Dispensary</p>
+      <div>
+        <h1>Product Label Studio</h1>
+        <p>Happy Thai Herb Co.,Ltd — Cannabis Clinic and Dispensary</p>
+      </div>
+      <a class="gacp-link" href="./gacp-contacts.html" target="_blank" rel="noopener">
+        GACP Farm Manager →
+      </a>
     </header>
 
     <section class="card studio">
@@ -148,6 +153,13 @@ async function onImportFile(e) {
   flex-direction: column;
   gap: 22px;
 }
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 .page-head h1 {
   margin: 0;
   font-family: 'Montserrat', sans-serif;
@@ -160,6 +172,19 @@ async function onImportFile(e) {
   color: #52685c;
   font-size: 14px;
 }
+.gacp-link {
+  align-self: center;
+  background: #eef4ef;
+  color: #005116;
+  border: 1px solid #c9d6cd;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.gacp-link:hover { background: #e2ece4; }
 .card {
   background: #ffffff;
   border: 1px solid #e0e8e2;
