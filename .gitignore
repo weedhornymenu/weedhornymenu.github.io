@@ -4,3 +4,4 @@ dist/
 *.local
 .vite/
 private/
+/gacp-certified-farms-thailand.csv
