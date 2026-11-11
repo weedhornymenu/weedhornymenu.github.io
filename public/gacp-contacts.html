@@ -991,9 +991,10 @@ document.addEventListener("keydown", e => {
 
 const embedded = normalizeState(EMBEDDED);
 const saved = loadSaved();
+const csvSaved = saved && String(saved.seedId || "").startsWith("csv-") ? saved : null;
 state = embedded && embedded.operators.length
   ? (saved && saved.seedId === embedded.seedId ? saved : embedded)
-  : saved;
+  : csvSaved;
 if (state){
   hideGate();
   syncChips();
