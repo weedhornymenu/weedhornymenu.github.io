@@ -233,6 +233,39 @@
   .gate-card .drop span{font-size:12.5px; color:var(--muted)}
   #gateErr{min-height:18px; margin:10px 0 0; color:var(--red); font-size:13px}
   .gate-hint{margin:12px 0 0; font-size:12px; color:var(--muted)}
+  /* offer summaries */
+  .offer-sum{display:flex; flex-direction:column; gap:9px; padding:10px 0 2px; border-top:1px solid var(--line)}
+  .offer-kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); gap:6px 10px; margin:0}
+  .offer-kpis div{min-width:0}
+  .offer-kpis span{display:block; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+  .offer-kpis b{display:block; font-size:13.5px; font-variant-numeric:tabular-nums; line-height:1.3; overflow-wrap:anywhere}
+  .offer-kpis small{font-size:10.5px; font-weight:400; color:var(--muted)}
+  .thumbs{display:flex; gap:7px; flex-wrap:wrap}
+  .thumbs a{display:block; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff}
+  .thumbs img{display:block; width:80px; height:58px; object-fit:contain; object-position:center; background:#fff}
+  .thumbs .more{display:flex; align-items:center; justify-content:center; width:80px; height:58px; border:1px dashed #b9c9bc; border-radius:8px; font-size:11.5px; color:var(--muted)}
+  .row-actions{display:flex; gap:6px; flex-wrap:wrap}
+  .row-facts small{font-size:10px; color:var(--muted)}
+  #offerDlg{width:min(1080px,calc(100vw - 24px))}
+  /* offer dialog */
+  .offer-meta{display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; font-size:12.5px; color:var(--muted)}
+  .offer-meta b{color:var(--ink)}
+  .dlg-thumbs{display:flex; gap:10px; flex-wrap:wrap}
+  .dlg-thumbs a{display:block; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#fff}
+  .dlg-thumbs img{display:block; width:148px; height:106px; object-fit:contain; object-position:center; background:#fff}
+  .offer-wrap{overflow:auto; max-height:50vh; border:1px solid var(--line); border-radius:10px}
+  .offer-table{width:100%; border-collapse:collapse; font-size:12.5px}
+  .offer-table th{position:sticky; top:0; z-index:1; background:#14532d; color:#fff; text-align:left; padding:7px 9px; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; white-space:nowrap}
+  .offer-table td{padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top}
+  .offer-table tbody tr:nth-child(even) td{background:#f7faf7}
+  .offer-table .num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .offer-table .item{font-weight:600}
+  .offer-table .sub{display:block; font-weight:400; font-size:11px; color:var(--muted); margin-top:1px}
+  .offer-table .wide{min-width:190px; max-width:280px}
+  .offer-empty{padding:18px; color:var(--muted); font-size:13px}
+  .tag{display:inline-block; font-size:11px; padding:2px 7px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-weight:600}
+  .tag.amber{background:var(--amber-soft); color:var(--amber)}
+  .tag.grey{background:var(--grey-soft); color:var(--grey)}
 </style>
 </head>
 <body id="page-top">
@@ -248,7 +281,7 @@
       <span>or drop it here</span>
     </label>
     <p id="gateErr" role="alert"></p>
-    <p class="gate-hint">Works with the 291-row dashboard export and with merged lists that add Website, Facebook, LINE, Instagram, Email, Phone, Address, Notes or Sources columns.</p>
+    <p class="gate-hint">Works with the 291-row dashboard export and with merged lists that add contact columns. A farm-offers export with Item, Price, Stock, THC, Aroma or Quotation columns opens as a supplier price list with quotation images.</p>
   </div>
 </div>
 <header>
@@ -257,7 +290,7 @@
       <div>
         <p class="eyebrow">Thailand · GACP-certified cultivation</p>
         <h1>Farm Manager</h1>
-        <p class="sub">Load the GACP dashboard export — or any merged CSV with contact columns — and every site is merged into company groups. Add categories, notes and edits; everything stays in this browser and can be exported as a backup or a standalone copy.</p>
+        <p class="sub">Load the GACP dashboard export or a farm-offers CSV — every site is merged into company groups. Price lists show stock, grade tiers, strain profiles and supplier quotations alongside the public business contacts. Add categories and notes; everything stays in this browser and can be exported as a backup or a standalone copy.</p>
       </div>
       <div class="head-actions">
         <details class="menu" id="dataMenu">
@@ -265,6 +298,7 @@
           <div class="menu-panel">
             <button type="button" id="btnLoadCsv">Load CSV…</button>
             <hr>
+            <button type="button" id="btnDownloadCsv">Download CSV</button>
             <button type="button" id="btnExportJson">Export backup (.json)</button>
             <button type="button" id="btnExportHtml">Save standalone copy (.html)</button>
             <button type="button" id="btnImportJson">Import backup…</button>
@@ -283,7 +317,7 @@
     <section id="view-dir">
       <div class="toolbar">
         <div class="controls">
-          <input id="q" type="search" placeholder="Search company, province, email, category, note…  (press /)" aria-label="Search companies">
+          <input id="q" type="search" placeholder="Search company, strain, aroma, province, category…  (press /)" aria-label="Search companies">
           <select id="province" aria-label="Filter by province"><option value="">All provinces</option></select>
           <select id="catFilter" aria-label="Filter by category"><option value="">All categories</option></select>
           <select id="confidence" aria-label="Filter by confidence">
@@ -293,9 +327,14 @@
             <option value="low">Low confidence</option>
           </select>
           <select id="sort" aria-label="Sort order">
+            <option value="source">Supplier list order</option>
             <option value="area">Largest area first</option>
             <option value="name">Name A–Z</option>
             <option value="province">Province A–Z</option>
+            <option value="price">Lowest price first</option>
+            <option value="priceDesc">Highest price first</option>
+            <option value="stock">Most stock</option>
+            <option value="items">Most offer lines</option>
             <option value="contacts">Most channels</option>
           </select>
         </div>
@@ -309,6 +348,8 @@
             <button class="chip" data-ch="phone" aria-pressed="false">Has phone</button>
           </div>
           <label class="toggle"><input type="checkbox" id="hasContact"> With contact only</label>
+          <label class="toggle"><input type="checkbox" id="hasPrice"> Has price</label>
+          <label class="toggle"><input type="checkbox" id="hasStock"> In stock</label>
           <div class="seg" role="group" aria-label="View" style="margin-left:auto">
             <button type="button" class="seg-btn" data-view="cards" aria-pressed="true">Cards</button>
             <button type="button" class="seg-btn" data-view="list" aria-pressed="false">List</button>
@@ -325,8 +366,8 @@
 
 <footer>
   <div class="wrap">
-    <p><strong>Source:</strong> the CSV you load — for example the Looker Studio “Dashboard GACP (ปัจจุบัน)” export (291 rows), or a merged list that adds contact columns. Contacts collected 10 November 2026.</p>
-    <p>Only publicly published business channels are listed; individual licensed farmers are intentionally left blank. Verify before outreach. The CSV stays in this browser and is never uploaded; your categories and edits are stored here too. Use <em>Data → Save standalone copy</em> to bake the current list into a portable file.</p>
+    <p><strong>Source:</strong> the CSV you load — the Looker Studio “Dashboard GACP (ปัจจุบัน)” export (291 rows), a merged contact list, or a farm-offers price list (one row per item, grade or strain). Contacts collected 10 November 2026; offers quoted 9–10 November 2026.</p>
+    <p>Only publicly published business channels are listed; individual licensed farmers are intentionally left blank. Prices are supplier quotes in THB ex-farm and must be verified before ordering. The CSV stays in this browser and is never uploaded; your categories and edits are stored here too. Use <em>Data → Download CSV</em> to export the current list or <em>Data → Save standalone copy</em> to bake it into a portable file.</p>
     <p class="no-print"><a class="toplink" onclick="window.scrollTo({top:0,behavior:'smooth'})">Back to top ↑</a></p>
   </div>
 </footer>
@@ -394,6 +435,20 @@
   </form>
 </dialog>
 
+<dialog id="offerDlg">
+  <form method="dialog">
+    <div class="modal-head">
+      <div><h2 id="offerTitle">Offers</h2><p id="offerSub"></p></div>
+      <button class="btn small" type="button" data-close>Close</button>
+    </div>
+    <div class="modal-body" id="offerBody"></div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn primary" type="button" data-close>Done</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script type="application/json" id="seed">{"seedId":"empty","operators":[],"categories":[],"assignments":{}}</script>
@@ -440,6 +495,12 @@ const numVal = v => {
   const n = parseFloat(String(v || "").replace(/,/g, ""));
   return isFinite(n) ? n : 0;
 };
+const numOrNull = v => {
+  const s = String(v == null ? "" : v).replace(/,/g, "").trim();
+  if (!s || !/\d/.test(s)) return null;
+  const n = Number(s);
+  return isFinite(n) ? n : null;
+};
 const stripSiteSuffix = s => String(s || "").replace(/\s*[\(（][^\)）]*[\)）]\s*$/, "").trim();
 const SYSTEM_ORDER = ["Indoor","Greenhouse","Outdoor"];
 const CHANNEL_KEYS = ["website","facebook","line","instagram","email","phone"];
@@ -454,6 +515,7 @@ function buildFromCsv(text){
     return -1;
   };
   const I = {
+    no: at("no.","no","farm no."),
     en: at("name (en)","name en","company name (en)","company","operator","name"),
     th: at("name (th)","name th","company name (th)"),
     prov: at("province (en)","province (th)","province"),
@@ -461,6 +523,7 @@ function buildFromCsv(text){
     area: at("area m2 (en)","area m2","total area (m2)","area (m2)","area"),
     plants: at("plants/year (en)","plants/year","plants per year","plants/yr"),
     cert: at("gacp certificate no.","gacp cert no.","gacp certificate","certificate no.","cert no.","cert"),
+    certExp: at("gacp certificate exp.","gacp cert exp.","certificate expiry","cert expiry"),
     sites: at("sites","site count"),
     website: at("website","web"),
     facebook: at("facebook","fb"),
@@ -471,9 +534,32 @@ function buildFromCsv(text){
     address: at("address"),
     confidence: at("confidence"),
     notes: at("notes","note","comment"),
-    sources: at("sources","source")
+    sources: at("sources","source"),
+    item: at("item","strain","product","strain name"),
+    category: at("category","offer category"),
+    thc: at("thc (%)","thc %","thc"),
+    otype: at("type","strain type"),
+    aroma: at("aroma"),
+    effects: at("effects","effect"),
+    grade: at("grade / size","grade","size"),
+    order: at("order","order status"),
+    minQty: at("min qty (kg)","min qty","min quantity (kg)","min quantity"),
+    maxQty: at("max qty (kg)","max qty","max quantity (kg)","max quantity"),
+    price: at("price (thb/kg)","price thb/kg","price per kg","price"),
+    exportPrice: at("export price (thb/kg)","export price"),
+    priceG: at("price (thb/g)","price thb/g","price per g"),
+    stock: at("stock (kg)","stock"),
+    offerNotes: at("offer notes","quote notes"),
+    quotation: at("quotation","quotation files","quotation file","quote image","image"),
+    stockNote: at("stock note"),
+    quoteDate: at("quote date")
   };
   if (I.en < 0 && I.th < 0) throw new Error("No name column found — expected “Name (EN)” or “Name (TH)”.");
+  let hasOffers = I.item >= 0 && (I.category >= 0 || I.price >= 0 || I.priceG >= 0 || I.stock >= 0 || I.quotation >= 0);
+  if (hasOffers){
+    const probe = [I.item,I.category,I.price,I.priceG,I.stock,I.quotation].filter(i => i >= 0);
+    hasOffers = rows.slice(1).some(r => probe.some(i => String(r[i] || "").trim()));
+  }
 
   const groups = new Map();
   for (const r of rows.slice(1)){
@@ -481,13 +567,22 @@ function buildFromCsv(text){
     const th = cleanName(I.th >= 0 ? r[I.th] : "");
     if (!en && !th) continue;
     const key = normName(en) || normName(th);
-    if (!groups.has(key)) groups.set(key, {key, enCount:{}, thCount:{}, prov:[], sys:[], certs:[], src:[], area:0, plants:0, sites:0});
+    if (!groups.has(key)) groups.set(key, {key, rank:groups.size, no:"", enCount:{}, thCount:{}, prov:[], sys:[], certs:[], src:[], area:0, plants:0, sites:0, offers:[], quotations:[], stockNote:"", quoteDate:"", certExp:""});
     const g = groups.get(key);
+    if (!g.no && I.no >= 0){ const v = String(r[I.no] || "").trim(); if (v) g.no = v; }
     if (en) g.enCount[en] = (g.enCount[en] || 0) + 1;
     if (th) g.thCount[th] = (g.thCount[th] || 0) + 1;
-    g.area += numVal(I.area >= 0 ? r[I.area] : "");
-    g.plants += numVal(I.plants >= 0 ? r[I.plants] : "");
-    g.sites += I.sites >= 0 ? Math.max(1, numVal(r[I.sites]) || 1) : 1;
+    const area = numVal(I.area >= 0 ? r[I.area] : "");
+    const plants = numVal(I.plants >= 0 ? r[I.plants] : "");
+    if (hasOffers){
+      g.area = Math.max(g.area, area);
+      g.plants = Math.max(g.plants, plants);
+      g.sites = 1;
+    } else {
+      g.area += area;
+      g.plants += plants;
+      g.sites += I.sites >= 0 ? Math.max(1, numVal(r[I.sites]) || 1) : 1;
+    }
     const put = (arr, v) => { v = String(v || "").trim(); if (v && !arr.includes(v)) arr.push(v); };
     put(g.prov, I.prov >= 0 ? r[I.prov] : "");
     put(g.sys, I.sys >= 0 ? r[I.sys] : "");
@@ -500,7 +595,35 @@ function buildFromCsv(text){
       if (["high","medium","low"].includes(v)) g.confidence = v;
     }
     if (I.notes >= 0 && !g.notes){ const v = String(r[I.notes] || "").trim(); if (v) g.notes = v; }
+    if (I.certExp >= 0 && !g.certExp){ const v = String(r[I.certExp] || "").trim(); if (v) g.certExp = v; }
     if (I.sources >= 0) String(r[I.sources] || "").split(/\s*\|\s*|\s*\n\s*/).forEach(s => put(g.src, s));
+    if (hasOffers){
+      if (I.stockNote >= 0 && !g.stockNote){ const v = String(r[I.stockNote] || "").trim(); if (v) g.stockNote = v; }
+      if (I.quoteDate >= 0 && !g.quoteDate){ const v = String(r[I.quoteDate] || "").trim(); if (v) g.quoteDate = v; }
+      const item = cleanName(I.item >= 0 ? r[I.item] : "");
+      const quotations = (I.quotation >= 0 ? String(r[I.quotation] || "") : "").split(/\s*\|\s*/).map(s => s.trim()).filter(Boolean);
+      const offer = {
+        item,
+        category: cleanName(I.category >= 0 ? r[I.category] : ""),
+        thc: cleanName(I.thc >= 0 ? r[I.thc] : ""),
+        type: cleanName(I.otype >= 0 ? r[I.otype] : ""),
+        aroma: cleanName(I.aroma >= 0 ? r[I.aroma] : ""),
+        effects: cleanName(I.effects >= 0 ? r[I.effects] : ""),
+        grade: cleanName(I.grade >= 0 ? r[I.grade] : ""),
+        order: cleanName(I.order >= 0 ? r[I.order] : ""),
+        minQty: I.minQty >= 0 ? numOrNull(r[I.minQty]) : null,
+        maxQty: I.maxQty >= 0 ? numOrNull(r[I.maxQty]) : null,
+        price: I.price >= 0 ? numOrNull(r[I.price]) : null,
+        exportPrice: I.exportPrice >= 0 ? numOrNull(r[I.exportPrice]) : null,
+        priceG: I.priceG >= 0 ? numOrNull(r[I.priceG]) : null,
+        stock: I.stock >= 0 ? numOrNull(r[I.stock]) : null,
+        notes: cleanName(I.offerNotes >= 0 ? r[I.offerNotes] : ""),
+        quotations
+      };
+      const meaningful = offer.item || offer.category || offer.price != null || offer.priceG != null || offer.stock != null || offer.aroma || offer.thc || offer.notes || quotations.length;
+      if (meaningful) g.offers.push(offer);
+      quotations.forEach(q => put(g.quotations, q));
+    }
   }
   if (!groups.size) throw new Error("No company names found in that CSV.");
 
@@ -514,26 +637,45 @@ function buildFromCsv(text){
     o.area = g.area;
     o.plants = g.plants;
     o.cert = g.certs.join(",");
+    o.certExp = g.certExp || "";
     o.sites = g.sites || 1;
+    o.rank = g.rank;
     for (const k of CHANNEL_KEYS) o[k] = g[k] || "";
     o.address = g.address || "";
     o.confidence = g.confidence || "";
     o.notes = g.notes || "";
     o.sources = g.src;
+    if (hasOffers){
+      o.no = g.no;
+      o.offers = g.offers;
+      o.quotations = g.quotations;
+      o.stockNote = g.stockNote;
+      o.quoteDate = g.quoteDate;
+      const prices = o.offers.map(x => x.price).filter(n => n != null);
+      const grams = o.offers.map(x => x.priceG).filter(n => n != null);
+      const stocks = o.offers.map(x => x.stock).filter(n => n != null);
+      o.priceMin = prices.length ? Math.min(...prices) : null;
+      o.priceMax = prices.length ? Math.max(...prices) : null;
+      o.priceGMin = grams.length ? Math.min(...grams) : null;
+      o.priceGMax = grams.length ? Math.max(...grams) : null;
+      o.stockKg = stocks.length ? Math.round(stocks.reduce((a,b) => a + b, 0) * 1000) / 1000 : 0;
+      o.itemCount = new Set(o.offers.map(x => x.item).filter(Boolean)).size;
+    }
     if (o.sites > 1){
       o.en = cleanName(stripSiteSuffix(o.en)) || o.en;
       o.th = cleanName(stripSiteSuffix(o.th)) || o.th;
     }
     return o;
   });
-  operators.sort((a,b) => b.area - a.area || a.en.localeCompare(b.en));
-  operators.forEach((o,i) => { o.id = i + 1; o.no = String(i + 1); });
-  return {operators, rowCount: rows.length - 1};
+  if (hasOffers) operators.sort((a,b) => a.rank - b.rank);
+  else operators.sort((a,b) => b.area - a.area || a.en.localeCompare(b.en));
+  operators.forEach((o,i) => { o.id = i + 1; o.no = o.no || String(i + 1); });
+  return {operators, rowCount: rows.length - 1, hasOffers};
 }
 
 function listHash(list){
   let h = 2166136261;
-  const s = JSON.stringify(list.map(o => [o.en, o.th, o.province, o.area, o.sites]));
+  const s = JSON.stringify(list.map(o => [o.en, o.th, o.province, o.area, o.sites, (o.offers || []).length]));
   for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 0).toString(36);
 }
@@ -545,6 +687,7 @@ function normalizeState(s){
   if (!s || !Array.isArray(s.operators)) return null;
   s.categories = Array.isArray(s.categories) ? s.categories : [];
   s.assignments = s.assignments && typeof s.assignments === "object" ? s.assignments : {};
+  if (!s.hasOffers) s.hasOffers = s.operators.some(o => Array.isArray(o.offers) && o.offers.length);
   return s;
 }
 function loadSaved(){
@@ -595,16 +738,18 @@ async function openCsvFile(file, fromGate){
     state = {
       seedId: "csv-" + listHash(built.operators),
       source: file.name,
+      hasOffers: built.hasOffers,
       operators: built.operators,
       categories: state ? state.categories : [],
       assignments: remapAssignments(state, built.operators)
     };
+    if (built.hasOffers){ dui.sort = "source"; $("#sort").value = "source"; }
     save();
     hideGate();
     syncChips();
     syncView();
     renderAll();
-    toast(`Loaded ${built.operators.length} companies · ${built.rowCount} rows`);
+    toast(`Loaded ${built.operators.length} companies · ${built.rowCount} rows${built.hasOffers ? " · price list" : ""}`);
   }catch(err){
     fail(err.message || "Could not read that CSV.");
   }
@@ -618,8 +763,26 @@ const opById = id => state.operators.find(o => o.id === +id);
 const catById = id => state.categories.find(c => c.id === id);
 const opCats = id => (state.assignments[id] || []).map(catById).filter(Boolean);
 const channelCount = o => ["website","facebook","line","instagram","email","phone"].filter(k => o[k]).length;
+const fmtKg = n => n == null || !isFinite(n) ? "—" : Number(n).toLocaleString("en-US", {maximumFractionDigits:3});
+const opOffers = o => Array.isArray(o.offers) ? o.offers : [];
+const offerCount = o => opOffers(o).length;
+const priceText = o => o.priceMin == null ? "" : (o.priceMin === o.priceMax ? fmtKg(o.priceMin) : fmtKg(o.priceMin) + "–" + fmtKg(o.priceMax));
+const qSrc = p => {
+  const s = String(p || "").trim();
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return "";
+  return s.replace(/^\/+/, "");
+};
+function offerThumbs(o, cls){
+  const qs = (o.quotations || []).map(qSrc).filter(Boolean);
+  if (!qs.length) return "";
+  const shown = qs.slice(0, cls === "dlg-thumbs" ? 12 : 3);
+  const html = shown.map(p => `<a href="${esc(p)}" target="_blank" rel="noopener noreferrer" title="${esc(p.split("/").pop())}"><img src="${esc(p)}" alt="Supplier quotation" loading="lazy"></a>`).join("");
+  const more = qs.length > shown.length ? `<span class="more">+${qs.length - shown.length}</span>` : "";
+  return `<div class="${cls}">${html}${more}</div>`;
+}
 
-const dui = {q:"", prov:"", conf:"", cat:"", only:false, chs:new Set(), sort:"area"};
+const dui = {q:"", prov:"", conf:"", cat:"", only:false, onlyPrice:false, onlyStock:false, chs:new Set(), sort:"area"};
 const VIEW_KEY = "gacp-view";
 let gacpView = localStorage.getItem(VIEW_KEY) === "list" ? "list" : "cards";
 
@@ -656,6 +819,18 @@ function card(o){
   const pills = cats.map(c => `<span class="cat-pill" style="background:${esc(c.color)}">${esc(c.name)}</span>`).join("");
   const notes = o.notes || "";
   const sources = (o.sources || []).map(s => `<li><a href="${esc(s)}" target="_blank" rel="noopener noreferrer">${esc(s.replace(/^https?:\/\//,"").slice(0,70))}</a></li>`).join("");
+  const oc = offerCount(o);
+  const pUnit = o.priceMin != null ? "THB/kg" : (o.priceGMin != null ? "THB/g" : "");
+  const pVal = o.priceMin != null ? priceText(o) : (o.priceGMin != null ? (o.priceGMin === o.priceGMax ? fmtKg(o.priceGMin) : fmtKg(o.priceGMin) + "–" + fmtKg(o.priceGMax)) : "");
+  const offerBlock = oc ? `
+    <div class="offer-sum">
+      <div class="offer-kpis">
+        <div><span>Price</span><b>${pVal || "On request"}</b>${pUnit ? `<small>${pUnit}</small>` : ""}</div>
+        <div><span>Stock</span><b>${o.stockKg ? fmtKg(o.stockKg) + " kg" : (o.stockNote ? esc(o.stockNote) : "Not quoted")}</b></div>
+        <div><span>Offer lines</span><b>${oc}</b><small>${o.itemCount || 0} items</small></div>
+      </div>
+      ${offerThumbs(o, "thumbs")}
+    </div>` : "";
   return `<article class="card" data-id="${o.id}">
     <div class="card-top">
       <span class="prov">${esc(o.province)}</span>
@@ -672,8 +847,10 @@ function card(o){
       <div><dt>Certificates</dt><dd>${esc(o.cert)}</dd></div>
       ${o.sites > 1 ? `<div><dt>Sites</dt><dd>${o.sites}</dd></div>` : ""}
     </dl>
+    ${offerBlock}
     <ul class="contacts">${contacts}</ul>
     <div class="card-foot">
+      ${oc ? `<button class="btn small primary" data-act="offers" data-id="${o.id}">View offers (${oc})</button>` : ""}
       <button class="btn small" data-act="edit" data-id="${o.id}">Edit</button>
     </div>
     ${(notes || sources) ? `<details class="notes"><summary>Notes &amp; sources</summary>
@@ -690,6 +867,9 @@ function row(o){
     const v = o[k];
     return v ? `<a class="ch" href="${esc(hrefFor(k,v))}" target="_blank" rel="noopener noreferrer" title="${label}">${label}</a>` : "";
   }).join("");
+  const oc = offerCount(o);
+  const pVal = o.priceMin != null ? priceText(o) : (o.priceGMin != null ? (o.priceGMin === o.priceGMax ? fmtKg(o.priceGMin) : fmtKg(o.priceGMin) + "–" + fmtKg(o.priceGMax)) : "");
+  const pUnit = o.priceMin != null ? "THB/kg" : "THB/g";
   return `<article class="row" data-id="${o.id}">
     <div class="row-main">
       <h2>${esc(o.en)}</h2>
@@ -703,10 +883,16 @@ function row(o){
       <div><dt>Area</dt><dd>${fmt(o.area)} m²</dd></div>
       <div><dt>Plants</dt><dd>${fmt(o.plants)}</dd></div>
       <div><dt>Cert</dt><dd>${esc(o.cert || "—")}</dd></div>
+      ${oc ? `<div><dt>Price</dt><dd>${pVal ? `${esc(pVal)} <small>${pUnit}</small>` : "On request"}</dd></div>` : ""}
+      ${oc ? `<div><dt>Stock</dt><dd>${o.stockKg ? `${fmtKg(o.stockKg)} kg` : "—"}</dd></div>` : ""}
+      ${oc ? `<div><dt>Offers</dt><dd>${oc}</dd></div>` : ""}
       ${o.sites > 1 ? `<div><dt>Sites</dt><dd>${o.sites}</dd></div>` : ""}
     </dl>
     <div class="row-channels">${channels || '<span class="none">No public channels</span>'}</div>
-    <button class="btn small" data-act="edit" data-id="${o.id}">Edit</button>
+    <div class="row-actions">
+      ${oc ? `<button class="btn small primary" data-act="offers" data-id="${o.id}">Offers (${oc})</button>` : ""}
+      <button class="btn small" data-act="edit" data-id="${o.id}">Edit</button>
+    </div>
   </article>`;
 }
 
@@ -717,36 +903,57 @@ function renderDirectory(){
     if (dui.conf && o.confidence !== dui.conf) return false;
     if (dui.cat && !(state.assignments[o.id] || []).includes(dui.cat)) return false;
     if (dui.only && channelCount(o) === 0) return false;
+    if (dui.onlyPrice && o.priceMin == null && o.priceGMin == null) return false;
+    if (dui.onlyStock && !(o.stockKg > 0)) return false;
     if (dui.chs.size && ![...dui.chs].some(k => o[k])) return false;
     if (q){
       const catNames = opCats(o.id).map(c => c.name).join(" ");
-      const hay = [o.en,o.th,o.province,o.systems,o.cert,o.website,o.facebook,o.line,o.instagram,o.email,o.phone,o.address,o.notes,catNames].join(" ").toLowerCase();
+      const offerHay = opOffers(o).map(x => [x.item,x.category,x.thc,x.type,x.aroma,x.effects,x.grade,x.order,x.notes].join(" ")).join(" ");
+      const hay = [o.en,o.th,o.province,o.systems,o.cert,o.website,o.facebook,o.line,o.instagram,o.email,o.phone,o.address,o.notes,o.stockNote,o.quoteDate,offerHay,catNames].join(" ").toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
+  const low = n => n == null ? Infinity : n;
   list.sort((a,b) =>
+    dui.sort === "source" ? (a.rank ?? 0) - (b.rank ?? 0) || a.en.localeCompare(b.en) :
     dui.sort === "name" ? a.en.localeCompare(b.en) :
     dui.sort === "province" ? a.province.localeCompare(b.province) || a.en.localeCompare(b.en) :
+    dui.sort === "price" ? low(a.priceMin) - low(b.priceMin) || a.en.localeCompare(b.en) :
+    dui.sort === "priceDesc" ? (b.priceMin == null ? -Infinity : b.priceMin) - (a.priceMin == null ? -Infinity : a.priceMin) || a.en.localeCompare(b.en) :
+    dui.sort === "stock" ? (b.stockKg || 0) - (a.stockKg || 0) || a.en.localeCompare(b.en) :
+    dui.sort === "items" ? (b.itemCount || 0) - (a.itemCount || 0) || a.en.localeCompare(b.en) :
     dui.sort === "contacts" ? channelCount(b) - channelCount(a) || b.area - a.area :
     b.area - a.area);
 
   $("#grid").innerHTML = list.map(gacpView === "list" ? row : card).join("");
   $("#empty").hidden = list.length > 0;
   const withC = list.filter(o => channelCount(o) > 0).length;
-  $("#count").innerHTML = `Showing <b>${list.length}</b> of ${state.operators.length} operators · <b>${withC}</b> with a contact`;
+  const priced = list.filter(o => o.priceMin != null || o.priceGMin != null).length;
+  const inStock = list.filter(o => o.stockKg > 0).length;
+  $("#count").innerHTML = `Showing <b>${list.length}</b> of ${state.operators.length} operators · <b>${withC}</b> with a contact`
+    + (priced ? ` · <b>${priced}</b> with price · <b>${inStock}</b> in stock` : "");
 }
 
 /* ---------------- stats ---------------- */
 function renderStats(){
   const withC = state.operators.filter(o => channelCount(o) > 0).length;
-  const sites = state.operators.reduce((n, o) => n + (o.sites || 0), 0);
-  $("#stats").innerHTML = [
+  const offers = state.operators.reduce((n, o) => n + offerCount(o), 0);
+  const stock = state.operators.reduce((n, o) => n + (o.stockKg || 0), 0);
+  const priced = state.operators.filter(o => o.priceMin != null || o.priceGMin != null).length;
+  const stats = offers ? [
     [state.operators.length, "companies"],
-    [sites, "sites"],
+    [offers, "offer lines"],
+    [fmtKg(Math.round(stock * 1000) / 1000), "kg in stock"],
+    [priced, "with a price"],
+    [state.categories.length, "categories"]
+  ] : [
+    [state.operators.length, "companies"],
+    [state.operators.reduce((n, o) => n + (o.sites || 0), 0), "sites"],
     [withC, "with a contact"],
     [state.categories.length, "categories"]
-  ].map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+  ];
+  $("#stats").innerHTML = stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
 }
 
 /* ---------------- selects ---------------- */
@@ -808,6 +1015,69 @@ $("#opForm").addEventListener("submit", e => {
   if (selected.length) state.assignments[o.id] = selected; else delete state.assignments[o.id];
   save(); renderAll(); $("#opDlg").close(); toast("Operator saved");
 });
+
+/* ---------------- offer dialog ---------------- */
+const qtyText = x => {
+  if (x.minQty != null && x.maxQty != null) return `${fmtKg(x.minQty)}–${fmtKg(x.maxQty)} kg`;
+  if (x.minQty != null) return `${fmtKg(x.minQty)} kg+`;
+  if (x.maxQty != null) return `up to ${fmtKg(x.maxQty)} kg`;
+  return "";
+};
+const thcText = v => !v ? "" : (/[a-z%]/i.test(v) ? v : `THC ${v}%`);
+function openOffers(id){
+  const o = opById(id); if (!o) return;
+  $("#offerTitle").textContent = o.en;
+  $("#offerSub").textContent = [o.province, o.systems, o.quoteDate ? `quoted ${o.quoteDate}` : ""].filter(Boolean).join(" · ");
+  const offers = opOffers(o);
+  const pVal = o.priceMin != null ? priceText(o) : (o.priceGMin != null ? (o.priceGMin === o.priceGMax ? fmtKg(o.priceGMin) : fmtKg(o.priceGMin) + "–" + fmtKg(o.priceGMax)) : "");
+  const pUnit = o.priceMin != null ? "THB/kg" : (o.priceGMin != null ? "THB/g" : "");
+  const meta = [
+    `<span>Price <b>${pVal ? esc(pVal) + " " + pUnit : "on request"}</b></span>`,
+    `<span>Stock <b>${o.stockKg ? fmtKg(o.stockKg) + " kg" : (o.stockNote ? "not quoted" : "—")}</b></span>`,
+    `<span>Lines <b>${offers.length}</b></span>`,
+    `<span>Items <b>${o.itemCount || 0}</b></span>`
+  ].join("");
+  if (!offers.length){
+    $("#offerBody").innerHTML = `<p class="offer-empty">This farm has no offer lines in the loaded CSV.</p>`;
+    $("#offerDlg").showModal();
+    return;
+  }
+  const sorted = offers.slice().sort((a,b) =>
+    (a.category || "").localeCompare(b.category || "") ||
+    (a.item || "").localeCompare(b.item || "") ||
+    (b.minQty || 0) - (a.minQty || 0));
+  const rowsHtml = sorted.map(x => {
+    const sub = [x.grade, x.order].filter(Boolean).join(" · ");
+    const profile = [thcText(x.thc), x.type].filter(Boolean).join(" · ");
+    const sense = [x.aroma, x.effects].filter(Boolean).join(" · ");
+    const priceSub = x.exportPrice != null ? `<span class="sub">export ${fmtKg(x.exportPrice)}</span>` : "";
+    return `<tr>
+      <td class="item wide">${esc(x.item || "—")}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</td>
+      <td>${esc(x.category || "—")}</td>
+      <td>${esc(qtyText(x) || "—")}</td>
+      <td class="num">${x.price != null ? fmtKg(x.price) : "—"}${priceSub}</td>
+      <td class="num">${x.priceG != null ? fmtKg(x.priceG) : "—"}</td>
+      <td class="num">${x.stock != null ? fmtKg(x.stock) : "—"}</td>
+      <td>${esc(profile || "—")}</td>
+      <td class="wide">${esc(sense || "—")}</td>
+      <td class="wide">${esc(x.notes || "")}</td>
+    </tr>`;
+  }).join("");
+  $("#offerBody").innerHTML = `
+    <div class="offer-meta">${meta}</div>
+    ${o.stockNote ? `<p class="hint">Stock note: ${esc(o.stockNote)}</p>` : ""}
+    ${offerThumbs(o, "dlg-thumbs")}
+    <div class="offer-wrap">
+      <table class="offer-table">
+        <thead><tr>
+          <th>Item</th><th>Category</th><th>Qty tier</th><th>THB/kg</th><th>THB/g</th><th>Stock (kg)</th><th>THC · Type</th><th>Aroma &amp; effects</th><th>Notes</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    ${o.notes ? `<p class="hint">${esc(o.notes)}</p>` : ""}`;
+  $("#offerDlg").showModal();
+}
 
 /* ---------------- category dialog ---------------- */
 let catDraft = [];
@@ -874,9 +1144,47 @@ function download(name, text, type){
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
+const OFFER_COLS = [
+  ["No.","no"],["Name (EN)","en"],["Name (TH)","th"],["Province (EN)","province"],["System (EN)","systems"],
+  ["Area m2 (EN)","area"],["Plants/Year (EN)","plants"],["GACP Certificate No.","cert"],["GACP Certificate Exp.","certExp"],
+  ["Phone","phone"],["LINE","line"],["Facebook","facebook"],["Website","website"],["Email","email"],["Instagram","instagram"],["Address","address"],
+  ["Stock Note","stockNote"],["Quote Date","quoteDate"],["Item","item"],["Category","category"],["THC (%)","thc"],["Type","type"],
+  ["Aroma","aroma"],["Effects","effects"],["Grade / Size","grade"],["Order","order"],["Min Qty (kg)","minQty"],["Max Qty (kg)","maxQty"],
+  ["Price (THB/kg)","price"],["Export Price (THB/kg)","exportPrice"],["Price (THB/g)","priceG"],["Stock (kg)","stock"],
+  ["Offer Notes","offerNotes"],["Notes","notes"],["Quotation","quotation"]
+];
+const OFFER_KEYS = new Set(["item","category","thc","type","aroma","effects","grade","order","minQty","maxQty","price","exportPrice","priceG","stock","offerNotes","quotation"]);
+const csvCell = v => {
+  const s = v == null ? "" : String(v);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+function exportCsv(){
+  if (!state) return;
+  const lines = [OFFER_COLS.map(([h]) => csvCell(h)).join(",")];
+  for (const o of state.operators){
+    const offers = opOffers(o).length ? opOffers(o) : [null];
+    for (const x of offers){
+      lines.push(OFFER_COLS.map(([h,key]) => {
+        if (OFFER_KEYS.has(key)){
+          if (!x) return "";
+          if (key === "quotation") return (x.quotations || []).join(" | ");
+          if (key === "offerNotes") return x.notes || "";
+          return x[key] ?? "";
+        }
+        return o[key] ?? "";
+      }).map(csvCell).join(","));
+    }
+  }
+  download("gacp-farm-offers.csv", "\uFEFF" + lines.join("\r\n") + "\r\n", "text/csv;charset=utf-8");
+  toast(`CSV downloaded · ${lines.length - 1} rows`);
+}
 $("#btnLoadCsv").addEventListener("click", e => {
   e.target.closest("details").open = false;
   pickCsv(false);
+});
+$("#btnDownloadCsv").addEventListener("click", e => {
+  e.target.closest("details").open = false;
+  exportCsv();
 });
 $("#fileCsv").addEventListener("change", e => {
   const f = e.target.files[0];
@@ -948,7 +1256,7 @@ function syncChips(){
     b.setAttribute("aria-pressed", dui.chs.has(b.dataset.ch) ? "true" : "false");
   });
 }
-function applyDir(){ dui.q = $("#q").value; dui.prov = $("#province").value; dui.conf = $("#confidence").value; dui.cat = $("#catFilter").value; dui.only = $("#hasContact").checked; dui.sort = $("#sort").value; renderDirectory(); }
+function applyDir(){ dui.q = $("#q").value; dui.prov = $("#province").value; dui.conf = $("#confidence").value; dui.cat = $("#catFilter").value; dui.only = $("#hasContact").checked; dui.onlyPrice = $("#hasPrice").checked; dui.onlyStock = $("#hasStock").checked; dui.sort = $("#sort").value; renderDirectory(); }
 function renderAll(){ renderStats(); renderSelects(); renderDirectory(); }
 function syncView(){
   $("#grid").classList.toggle("view-list", gacpView === "list");
@@ -961,6 +1269,8 @@ $("#catFilter").addEventListener("change", applyDir);
 $("#confidence").addEventListener("change", applyDir);
 $("#sort").addEventListener("change", applyDir);
 $("#hasContact").addEventListener("change", applyDir);
+$("#hasPrice").addEventListener("change", applyDir);
+$("#hasStock").addEventListener("change", applyDir);
 document.querySelectorAll("#chips .chip").forEach(b => b.addEventListener("click", () => {
   dui.chs.has(b.dataset.ch) ? dui.chs.delete(b.dataset.ch) : dui.chs.add(b.dataset.ch);
   syncChips(); renderDirectory();
@@ -982,6 +1292,7 @@ document.addEventListener("click", e => {
 $("#grid").addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if (!b) return;
   if (b.dataset.act === "edit") openOp(b.dataset.id);
+  else if (b.dataset.act === "offers") openOffers(b.dataset.id);
 });
 
 document.addEventListener("keydown", e => {
@@ -996,6 +1307,7 @@ state = embedded && embedded.operators.length
   ? (saved && saved.seedId === embedded.seedId ? saved : embedded)
   : csvSaved;
 if (state){
+  if (state.hasOffers){ dui.sort = "source"; $("#sort").value = "source"; }
   hideGate();
   syncChips();
   syncView();
